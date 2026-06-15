@@ -1,0 +1,115 @@
+# LunarIceNet Configuration
+# BAH 2026 - PS-8: Subsurface Ice Detection in Lunar South Polar Region
+
+project:
+  name: "LunarIceNet"
+  version: "0.1.0"
+  description: "AI-powered subsurface ice detection using Chandrayaan-2 DFSAR data"
+
+data:
+  # Chandrayaan-2 DFSAR parameters
+  dfsar:
+    l_band_wavelength: 0.24  # meters (24 cm)
+    s_band_wavelength: 0.12  # meters (12 cm)
+    polarizations: ["HH", "HV", "VH", "VV"]  # Full-pol modes
+    resolution: 2  # meters (full-pol stripmap mode)
+
+  # Region of interest - Lunar South Pole
+  roi:
+    lat_min: -90.0
+    lat_max: -80.0
+    lon_min: -180.0
+    lon_max: 180.0
+
+  # Preprocessing
+  preprocessing:
+    patch_size: 256
+    stride: 128
+    normalize: true
+    augmentation: true
+
+  # Data sources
+  sources:
+    dfsar: "https://pradan.issdc.gov.in"
+    lro_lola: "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/"
+    mini_rf: "https://pds-geosciences.wustl.edu/missions/lro/minirf.htm"
+
+features:
+  # Polarimetric decomposition features
+  polarimetric:
+    - "CPR"           # Circular Polarization Ratio
+    - "DOP"           # Degree of Polarization
+    - "m_chi"         # m-chi decomposition
+    - "eigenvalues"   # Eigenvalue decomposition (H/A/alpha)
+    - "shannon_entropy"
+    - "pedestal_height"
+
+  # Physical features
+  physical:
+    - "illumination_geometry"  # Solar incidence angle
+    - "crater_depth"           # From LOLA DEM
+    - "surface_temperature"    # Estimated from thermal model
+    - "slope"                  # Terrain slope
+    - "roughness"              # Surface roughness from radar
+
+model:
+  name: "LunarIceNet"
+  architecture:
+    # Radar feature encoder
+    radar_encoder:
+      type: "resnet_custom"
+      in_channels: 12  # Stacked polarimetric features
+      hidden_dims: [64, 128, 256, 512]
+      dropout: 0.3
+
+    # Physics branch
+    physics_encoder:
+      type: "mlp"
+      in_features: 5  # Physical features
+      hidden_dims: [32, 64, 128]
+
+    # Fusion
+    fusion:
+      type: "cross_attention"
+      embed_dim: 256
+      num_heads: 8
+      num_layers: 4
+
+    # Output heads
+    output:
+      ice_probability: 1      # Binary classification
+      ice_depth_estimate: 1    # Regression (meters)
+      confidence: 1            # Uncertainty estimation
+
+training:
+  batch_size: 16
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  warmup_epochs: 5
+
+  loss:
+    type: "physics_informed"
+    components:
+      bce_weight: 1.0           # Binary cross-entropy for ice/no-ice
+      depth_mse_weight: 0.5     # MSE for depth estimation
+      physics_constraint: 0.3   # Physics-informed regularization
+      temperature_prior: 0.2    # Temperature must be < 110K for ice stability
+
+  validation:
+    split: 0.2
+    metrics: ["accuracy", "precision", "recall", "f1", "auc_roc"]
+
+landing_site:
+  scoring_weights:
+    ice_probability: 0.35
+    terrain_slope: 0.20        # Flatter is better (< 15 degrees)
+    accessibility: 0.15        # Communication with Earth
+    illumination: 0.15         # Solar panel viability nearby
+    confidence: 0.15           # Model certainty
+
+visualization:
+  map_projection: "south_polar_stereographic"
+  colormap: "viridis"
+  output_formats: ["png", "html", "geotiff"]
