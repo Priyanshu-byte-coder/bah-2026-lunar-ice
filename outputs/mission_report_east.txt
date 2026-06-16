@@ -1,0 +1,40 @@
+======================================================================
+  LUNARICENET — MISSION PLANNING REPORT
+  Bharatiya Antariksh Hackathon 2026 | Problem Statement 8
+  Chandrayaan-2 DFSAR Subsurface Ice Detection
+======================================================================
+  Generated: 2026-06-16 23:43
+  DFSAR direction: EAST
+
+┌─ STAGE 1: ICE DETECTION ───────────────────────────────────────────┐
+│  Method: LunarIceNet physics-informed CNN + cross-attention fusion  │
+│  Data: Chandrayaan-2 DFSAR Level 3C/L4 mosaics (CPR, SERD, T-Ratio)│
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 2: LANDING SITES ───────────────────────────────────────────┐
+│  #1  lat= -86.035  lon=  -28.650  score=0.728        │
+│  #2  lat= -86.082  lon=  -28.756  score=0.723        │
+│  #3  lat= -85.691  lon=  -99.827  score=0.722        │
+│  #4  lat= -84.937  lon=  -92.867  score=0.722        │
+│  #5  lat= -86.175  lon=   80.918  score=0.720        │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 3: ROVER TRAVERSE ──────────────────────────────────────────┐
+│  Traverse planning failed or no feasible path in data region        │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 4: ICE VOLUME ESTIMATION ───────────────────────────────────┐
+│  Volume:       8,423,807 m³                              │
+│  Mass:      7,724,631,034 kg                              │
+│             (7724.63 million tonnes)                              │
+│  Ice area:  34,314,923,125 m²                              │
+│  Mean frac:       0.094 %                               │
+│  Mean depth:       1.05 m                               │
+│  90% CI:    [3,713,993 — 14,595,613] m³         │
+└────────────────────────────────────────────────────────────────────┘
+
+  Model: LunarIceNet (12.4M parameters)
+  Validation F1: 0.8428 | Precision: 0.8906 | Recall: 0.7999
+  Dataset: 34,840 patches from 55M valid DFSAR pixels
+
+======================================================================

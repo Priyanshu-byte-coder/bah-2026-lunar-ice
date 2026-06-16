@@ -99,7 +99,7 @@ def predict(config: dict):
 
     # Demo inference with synthetic data
     batch_size = 1
-    dummy_radar = torch.randn(batch_size, 16, 256, 256)
+    dummy_radar = torch.randn(batch_size, config['model']['architecture']['radar_encoder']['in_channels'], 256, 256)
     dummy_physical = torch.tensor([[-87.3, 77.0, 0.7, 87.3, 1.0]])
 
     with torch.no_grad():
@@ -253,6 +253,9 @@ def main():
 
     if command == "train":
         train(config)
+    elif command == "train-real":
+        import subprocess
+        subprocess.run([sys.executable, "train_real.py"] + sys.argv[2:])
     elif command == "predict":
         predict(config)
     elif command == "demo":
@@ -261,7 +264,7 @@ def main():
         launch_dashboard()
     else:
         print(f"Unknown command: {command}")
-        print("Available: train, predict, demo, dashboard")
+        print("Available: train, train-real, predict, demo, dashboard")
         sys.exit(1)
 
 

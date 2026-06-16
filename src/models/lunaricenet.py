@@ -74,7 +74,7 @@ class MultiScaleRadarEncoder(nn.Module):
     fine-grained surface texture and broader geological context.
     """
 
-    def __init__(self, in_channels: int = 16, embed_dim: int = 256):
+    def __init__(self, in_channels: int = 3, embed_dim: int = 256):
         super().__init__()
 
         self.stem = nn.Sequential(
@@ -322,7 +322,7 @@ class LunarIceNet(nn.Module):
 
     def __init__(
         self,
-        in_channels: int = 16,
+        in_channels: int = 3,
         physics_features: int = 5,
         embed_dim: int = 256,
         num_heads: int = 8,

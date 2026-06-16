@@ -58,7 +58,7 @@ model:
     # Radar feature encoder
     radar_encoder:
       type: "resnet_custom"
-      in_channels: 12  # Stacked polarimetric features
+      in_channels: 3  # CPR, SERD, T-Ratio from Level 3C mosaics
       hidden_dims: [64, 128, 256, 512]
       dropout: 0.3
 

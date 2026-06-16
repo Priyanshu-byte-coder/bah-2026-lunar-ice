@@ -1,0 +1,60 @@
+======================================================================
+LUNAR SUBSURFACE ICE VOLUME ESTIMATION REPORT
+ISRO BAH 2026 — PS-8: Chandrayaan-2 DFSAR Analysis
+======================================================================
+
+METHODOLOGY
+----------------------------------------
+  Radar frequency:       1.25 GHz
+  Pixel area:            625 m^2
+  Monte Carlo samples:   1000
+  Dielectric model:      lichtenecker
+  Regolith permittivity: 3.00
+  Ice permittivity:      3.15
+
+TOTAL ICE VOLUME ESTIMATE
+----------------------------------------
+  Valid pixels:          98
+  Survey area:           61,250 m^2 (0.061 km^2)
+  Mean ice fraction:     0.000 (0.0%)
+  Mean depth:            1.06 m
+
+  Ice volume (best):     0.0 m^3
+  Ice mass (best):       0.0 kg (0.00 million tonnes)
+
+  90% confidence interval:
+    Volume:  [0.0, 0.0] m^3
+    Mass:    [0.0, 0.0] kg
+
+PER-CRATER BREAKDOWN
+----------------------------------------
+  Crater               Volume (m^3)      Mass (kg)   Ice frac   Pixels
+  ------------------------------------------------------------------
+  Shoemaker DPSR-1              0.0            0.0       0.0%      417
+  Nobile DPSR-1                 0.0            0.0       nan%      388
+  Haworth-Shoemaker DPSR-1            0.0            0.0       0.0%      341
+  Faustini DPSR-1               0.0            0.0       0.0%      325
+  Haworth-Shoemaker DPSR-2            0.0            0.0       0.0%      291
+  Faustini DPSR-2               0.0            0.0       0.0%      280
+  Slater DPSR-1                 0.0            0.0       nan%      246
+  Haworth DPSR-1                0.0            0.0       0.0%      201
+  Haworth DPSR-2                0.0            0.0       0.0%      193
+  Shoemaker DPSR-2              0.0            0.0       0.0%      181
+  Faustini DPSR-3               0.0            0.0       0.0%      175
+  Faustini DPSR-4               0.0            0.0       0.0%      124
+  Sverdrup DPSR-1               0.0            0.0       nan%      115
+  Shoemaker DPSR-3              0.0            0.0       nan%      112
+  de Gerlache-Haworth DPSR-1            0.0            0.0       nan%      101
+  Haworth DPSR-3                0.0            0.0       0.0%       98
+  ------------------------------------------------------------------
+  TOTAL                         0.0            0.0
+
+NOTES
+----------------------------------------
+  - Ice fraction estimated from CPR via empirical curve
+  - Penetration depth derived from Lichtenecker mixing model
+  - Uncertainty via Monte Carlo perturbation of ice fraction,
+    depth, and probability inputs
+  - Consistent with 1-30% ice by volume (literature range)
+  - Ice density: 917 kg/m^3; Regolith density: 1500 kg/m^3
+======================================================================

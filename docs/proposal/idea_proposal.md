@@ -1,6 +1,6 @@
 # IDEA PROPOSAL — Bharatiya Antariksh Hackathon 2026
 
-## Problem Statement 8: Subsurface Ice Detection in Lunar South Polar Regions
+## Problem Statement 8: Detection and Characterization of Subsurface Ice in Lunar South Polar Regions Using Chandrayaan-2 Radar and Imagery Data for Landing Site and Rover Traverse Planning
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### 1.1 The Challenge
 
-The Lunar South Polar Region harbors Permanently Shadowed Regions (PSRs) — craters that have never received direct sunlight, maintaining temperatures as low as 25K (-248°C). These extreme cold traps are theorized to preserve water ice deposits accumulated over billions of years from cometary impacts and solar wind interactions. Detecting and characterizing this subsurface ice is critical for:
+The Lunar South Polar Region harbors **Doubly Permanently Shadowed Regions (DPSRs)** — small craters nested within larger permanently shadowed craters, where rims additionally block scattered light and thermal emission from nearby illuminated surfaces. These are the coldest places in the inner solar system (~25K / -248°C), providing ideal environments for preserving subsurface water ice accumulated over billions of years. Detecting and characterizing this subsurface ice is critical for:
 
 - **Future Chandrayaan mission landing site selection** — identifying safe, resource-rich locations
 - **In-Situ Resource Utilization (ISRU)** — water ice can be converted to drinking water, oxygen, and hydrogen fuel for sustainable lunar exploration
@@ -36,11 +36,12 @@ Recent work by the **Physical Research Laboratory (PRL), Ahmedabad** (2026) dete
 
 ### 1.3 Our Opportunity
 
-We propose **LunarIceNet** — a **physics-informed deep learning system** that goes beyond classical thresholding to provide:
-1. Continuous ice probability maps with uncertainty estimation
-2. Subsurface ice depth estimates
-3. Automated landing site scoring and ranking
-4. Explainable predictions grounded in physical constraints
+We propose **LunarIceNet** — a **physics-informed deep learning system** that goes beyond classical thresholding to deliver a complete mission planning pipeline:
+1. Continuous ice probability maps with uncertainty estimation in doubly shadowed craters
+2. Subsurface ice depth and **volume estimation (0–5m)** using dielectric mixing models
+3. Automated landing site scoring and ranking with terrain safety analysis
+4. **Optimized rover traverse planning** from landing site to ice targets with hazard avoidance
+5. Explainable predictions grounded in physical constraints
 
 ---
 
@@ -49,21 +50,27 @@ We propose **LunarIceNet** — a **physics-informed deep learning system** that 
 ### 2.1 System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          LunarIceNet Pipeline                          │
-│                                                                         │
-│  Chandrayaan-2     Polarimetric        Physics-Informed      Landing   │
-│  DFSAR Data    →   Feature         →   Deep Learning     →   Site      │
-│  (L+S band)        Extraction          Model                 Scoring   │
-│                    (CPR, DOP,          (LunarIceNet)         Module     │
-│  LRO LOLA DEM     m-chi, H/A/α)                                       │
-│  Temperature                           ↓                    ↓          │
-│  Models            ↓                   Ice Probability      Ranked     │
-│                    16 feature           Depth Estimate       Sites     │
-│                    channels             Confidence Map       Report    │
-│                                                                         │
-│                          Interactive 3D Dashboard                       │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       LunarIceNet — Complete Mission Pipeline               │
+│                                                                              │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐ │
+│  │  STAGE 1     │   │  STAGE 2     │   │  STAGE 3     │   │  STAGE 4     │ │
+│  │ Ice Detection│ → │Landing Site  │ → │Rover Traverse│ → │Ice Volume    │ │
+│  │              │   │Selection     │   │Planning      │   │Estimation    │ │
+│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘   └──────┬───────┘ │
+│         │                  │                   │                  │          │
+│  DFSAR L+S band     Multi-criteria      A* pathfinding     Dielectric      │
+│  CPR/SERD/T-Ratio   scoring (ice,       terrain hazards    mixing models   │
+│  OHRC imagery       slope, access,      solar power        Volume 0-5m    │
+│  Physics priors     illumination)       rover constraints  Per-crater      │
+│         │                  │                   │                  │          │
+│         ▼                  ▼                   ▼                  ▼          │
+│  Ice Probability     Ranked Sites      Optimal Path       Ice Volume      │
+│  Depth Estimate      Safety Report     Waypoints           (m³ / kg)      │
+│  Confidence Map      Coordinates       Energy Budget       Uncertainty     │
+│                                                                              │
+│                    Interactive 3D Dashboard + Mission Report                  │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 2.2 Data Sources
@@ -71,10 +78,12 @@ We propose **LunarIceNet** — a **physics-informed deep learning system** that 
 | Source | Data | Purpose |
 |--------|------|---------|
 | **Chandrayaan-2 DFSAR** | L-band & S-band full-pol SAR (HH, HV, VH, VV) | Primary radar data for ice detection |
-| **PRADAN Portal** (ISRO) | Processed DFSAR products | Data access & download |
-| **LRO LOLA** (NASA) | Digital Elevation Model (118m/pixel) | Terrain slope, crater depth, roughness |
+| **Chandrayaan-2 OHRC** | High-resolution camera (0.25m/pixel) | Crater morphology, boulder detection, surface roughness |
+| **PRADAN Portal** (ISRO) | Processed DFSAR Level 3C/L4 mosaics (CPR, SERD, T-Ratio) | Pre-computed polarimetric products at 25m/pixel |
+| **LRO LOLA** (NASA) | Digital Elevation Model (118m/pixel) | Terrain slope, rover traverse planning |
 | **LRO Diviner** (NASA) | Surface temperature maps | Temperature constraints for ice stability |
-| **Published PSR Catalogs** | Known permanently shadowed regions | Training pseudo-labels & validation |
+| **DPSR Catalogs** | Doubly shadowed regions (O'Brien & Byrne 2022) | Focus targets & pseudo-labels |
+| **PRL 2026 Paper** | 9 investigated DPSRs, 4 with CPR > 1 | Validation & ground truth |
 
 ### 2.3 Feature Engineering
 
@@ -166,6 +175,48 @@ Post-detection, we evaluate candidate landing sites using weighted multi-criteri
 
 Output: Ranked list of optimal landing zones with composite scores and detailed breakdown.
 
+### 2.8 Rover Traverse Planning Module
+
+Once a landing site is selected, we plan an optimal rover path to ice targets:
+
+**Algorithm**: A* pathfinding on the 25m/pixel terrain grid with custom cost function:
+
+| Cost Component | Weight | Description |
+|---------------|--------|-------------|
+| Slope Penalty | 40% | Exponential cost for slopes >15°; impassable >25° |
+| Distance Cost | 20% | Euclidean distance penalty |
+| Ice Reward | -25% | Negative cost (attraction) toward high ice probability |
+| Solar Access | -15% | Prefer paths near illuminated ridges for power |
+
+**Rover Constraints**:
+- Maximum traversable slope: 25°
+- Maximum range: ~5 km from landing site
+- Speed: ~100 m/hour (flat), decreasing with slope
+- Solar power requirement: periodic access to illuminated terrain
+
+**Outputs**:
+- Optimal waypoint sequence from landing site to ice target
+- Total traverse distance and estimated time
+- Safety metrics (max slope, hazard count, energy budget)
+- Ice sampling waypoints ranked by probability
+
+### 2.9 Ice Volume Estimation Module
+
+Quantitative ice volume estimation using radar backscatter and dielectric models:
+
+**Dielectric Mixing Model** (Maxwell-Garnett approximation):
+- Lunar regolith permittivity: ε_r ≈ 3.0
+- Water ice permittivity: ε_ice ≈ 3.15
+- Mixed permittivity depends on ice volume fraction (0–30%)
+
+**Volume Calculation**:
+1. Estimate ice fraction from CPR: CPR=1.0→~5%, CPR=1.5→~15%, CPR=2.0→~25%
+2. Estimate penetration depth from radar wavelength: L-band (24cm) → ~2m, S-band (12cm) → ~1m
+3. Per-pixel volume: pixel_area (625 m²) × depth × ice_fraction × ice_probability
+4. Aggregate per crater and total with Monte Carlo uncertainty bounds
+
+**Output**: Total ice volume (m³), mass (kg), per-crater breakdown, confidence intervals
+
 ---
 
 ## 3. Technical Feasibility
@@ -175,9 +226,10 @@ Output: Ranked list of optimal landing zones with composite scores and detailed 
 | Component | Technology |
 |-----------|-----------|
 | ML Framework | PyTorch + PyTorch Lightning |
-| SAR Processing | ESA SNAP (snappy Python API) |
-| Geospatial | rasterio, geopandas, pyproj |
-| 3D Visualization | Plotly, CesiumJS |
+| SAR Processing | ISRO MIDAS, ESA SNAP |
+| Geospatial | rasterio, geopandas, pyproj, GDAL |
+| Path Planning | A* algorithm, NumPy, SciPy optimization |
+| 3D Visualization | Plotly, CesiumJS, matplotlib |
 | Dashboard | Streamlit |
 | Compute | Google Colab Pro (NVIDIA T4/A100 GPU) |
 
@@ -192,10 +244,11 @@ Output: Ranked list of optimal landing zones with composite scores and detailed 
 
 | Phase | Duration | Deliverable |
 |-------|----------|-------------|
-| Data Loading & Feature Extraction | 6 hours | Preprocessed feature maps |
-| Model Training | 8 hours | Trained LunarIceNet checkpoint |
-| Evaluation & Landing Site Analysis | 6 hours | Metrics + ranked sites |
-| Dashboard & Visualization | 6 hours | Interactive 3D demo |
+| Data Loading & Feature Extraction | 4 hours | Preprocessed DFSAR + OHRC feature maps |
+| Model Training & Ice Detection | 6 hours | Trained LunarIceNet, ice probability maps |
+| Landing Site + Rover Traverse | 6 hours | Ranked sites, optimal rover paths |
+| Ice Volume Estimation | 4 hours | Per-crater volume estimates with uncertainty |
+| Dashboard & Visualization | 6 hours | Interactive 3D mission planning demo |
 | Presentation Preparation | 4 hours | Final pitch + live demo |
 
 ### 3.4 Team Competencies
@@ -216,7 +269,9 @@ Output: Ranked list of optimal landing zones with composite scores and detailed 
 1. **First deep learning approach on DFSAR data for ice detection** — existing studies use only classical polarimetric thresholds
 2. **Physics-informed architecture** — domain knowledge embedded in model design and loss function, not just applied as post-processing
 3. **Multi-task learning** — simultaneously predicts ice presence, depth, and confidence rather than binary detection
-4. **End-to-end pipeline** — from raw SAR data to actionable landing site recommendations in a single system
+4. **Complete mission planning pipeline** — from radar data to ice detection → landing site → rover traverse → ice volume — a single integrated system
+5. **Doubly Shadowed Crater focus** — specifically targets DPSRs (coldest lunar locations, ~25K) rather than generic PSRs, aligned with PRL 2026 findings
+6. **Quantitative ice volume estimation** — dielectric mixing models providing actionable resource estimates for ISRU planning
 
 ### 4.2 Impact on ISRO's Lunar Program
 
@@ -245,11 +300,13 @@ Output: Ranked list of optimal landing zones with composite scores and detailed 
 
 ## 5. References
 
-1. Physical Research Laboratory, Ahmedabad. (2026). "Detection of Subsurface Ice in Doubly Shadowed Craters using Chandrayaan-2 DFSAR." *Icarus*.
-2. Saran, S. et al. (2023). "Chandrayaan-2 Dual Frequency SAR (DFSAR): Performance characterization and initial results." *Planetary and Space Science*.
-3. Spudis, P.D. et al. (2013). "Evidence for water ice on the Moon: Results for anomalous polar craters from the LRO Mini-RF imaging radar." *JGR Planets*.
-4. Colaprete, A. et al. (2010). "Detection of water in the LCROSS ejecta plume." *Science*.
-5. Hayne, P.O. et al. (2015). "Evidence for exposed water ice in the Moon's south polar regions from LRO." *Icarus*.
+1. Sinha, R.K., Bharti, R.R., Acharyya, K., Mishra, S.K., Srivastava, N. & Bhardwaj, A. (2026). "Subsurface ice in doubly shadowed craters as revealed by Chandrayaan-2 dual frequency synthetic aperture radar." *npj Space Exploration*, 2, Article 22.
+2. O'Brien, R. & Byrne, S. (2022). "Doubly Shadowed Craters on the Moon." *Geophysical Research Letters*.
+3. Saran, S. et al. (2023). "Chandrayaan-2 Dual Frequency SAR (DFSAR): Performance characterization and initial results." *Planetary and Space Science*.
+4. Spudis, P.D. et al. (2013). "Evidence for water ice on the Moon: Results for anomalous polar craters from the LRO Mini-RF imaging radar." *JGR Planets*.
+5. Li, S. et al. (2018). "Direct evidence of surface exposed water ice in the lunar polar regions." *PNAS*.
+6. Colaprete, A. et al. (2010). "Detection of water in the LCROSS ejecta plume." *Science*.
+7. Hayne, P.O. et al. (2015). "Evidence for exposed water ice in the Moon's south polar regions from LRO." *Icarus*.
 
 ---
 
