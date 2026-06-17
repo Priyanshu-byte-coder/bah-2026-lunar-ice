@@ -108,20 +108,26 @@ def stage1_ice_detection(args, output_dir: Path):
     checkpoint = torch.load(ckpt_path, map_location=device)
     n_channels = checkpoint.get('in_channels', 3)
 
-    # Auto-detect embed_dim from checkpoint weights (avoids mismatch when
-    # west model was trained with embed_dim=64 vs east embed_dim=128)
+    # Auto-detect arch from checkpoint weights to handle different training configs
     state = checkpoint['model_state_dict']
-    detected_embed = state.get('radar_encoder.ms_conv1.weight',
-                               state.get('radar_encoder.ms_conv3.weight',
-                               None))
-    if detected_embed is not None:
-        embed_dim = int(detected_embed.shape[0])
-    else:
-        embed_dim = checkpoint.get('embed_dim', 128)
-    logger.info(f"Auto-detected embed_dim={embed_dim} from checkpoint")
+
+    # embed_dim: read from ms_conv1 output channels
+    detected_embed = state.get('radar_encoder.ms_conv1.weight', None)
+    embed_dim = int(detected_embed.shape[0]) if detected_embed is not None \
+                else checkpoint.get('embed_dim', 128)
+
+    # num_attn_layers: count how many fusion.layers.N exist
+    num_attn_layers = 0
+    while f'fusion.layers.{num_attn_layers}.norm1.weight' in state:
+        num_attn_layers += 1
+    if num_attn_layers == 0:
+        num_attn_layers = 2  # fallback
+
+    logger.info(f"Auto-detected embed_dim={embed_dim}, num_attn_layers={num_attn_layers}")
 
     model = LunarIceNet(in_channels=n_channels, physics_features=5,
-                        embed_dim=embed_dim, num_heads=4, num_attn_layers=2,
+                        embed_dim=embed_dim, num_heads=4,
+                        num_attn_layers=num_attn_layers,
                         patch_size=args.patch_size).to(device)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
