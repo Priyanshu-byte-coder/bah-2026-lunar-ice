@@ -1,17 +1,28 @@
 # LunarIceNet — Remaining Work & Hackathon Timeline
 
-## Hackathon Dates (BAH 2026)
+## Hackathon Dates (BAH 2026) — OFFICIAL
 
-> Official dates not published in repo. Based on document metadata and "June 2026" stamp in proposal.
-> **ACTION REQUIRED**: Confirm exact dates at https://bah.isro.gov.in
+| Phase | Start | End | Status |
+|-------|-------|-----|--------|
+| **Idea Submission** | Tue Jun 09, 5:00 PM IST | **Wed Jul 01, 11:59 PM IST** | 🔴 LIVE — closes in ~14 days |
+| **Evaluation** | Thu Jul 02, 12:08 PM IST | Sun Jul 19, 11:59 PM IST | Pending |
+| **Shortlist Announced** | Mon Jul 20, 9:00 AM IST | Mon Jul 20, 11:59 PM IST | Pending |
+| **Induction Session** | Tue Jul 21, 4:00 PM IST | Tue Jul 21, 5:00 PM IST | Pending |
+| **Finale (30-hr hack)** | **Thu Aug 06, 8:00 AM IST** | **Fri Aug 07, 7:00 PM IST** | Pending |
+| **Grand Final Submission** | Thu Aug 06, 5:00 PM IST | **Fri Aug 07, 9:00 AM IST** | Pending |
 
-Typical BAH structure (verify official portal):
+### Critical Deadlines
+- **Jul 01 11:59 PM IST** — Idea submission closes (~14 days from now). Repo + proposal must be clean.
+- **Jul 20** — Shortlist announced. If selected → induction Jul 21.
+- **Aug 06 5:00 PM IST** — 30-hr submission window opens. Everything must be ready to run live.
+- **Aug 07 9:00 AM IST** — Final code/report submission deadline.
+- **Aug 07 7:00 PM IST** — Presentations end.
 
-| Round | Event | Est. Date |
-|-------|-------|-----------|
-| Round 1 | Idea submission | **DONE** (Jun 2026) |
-| Round 2 | Prototype + code submission | ~Jul 2026 |
-| Finale | 30-hour hackathon + presentation | ~Aug 2026 |
+### What to do before Jul 01 (idea phase close)
+- [ ] Verify proposal PDF uploaded to portal
+- [ ] GitHub repo public and polished (README done ✓)
+- [ ] West pipeline run + results in outputs/west/
+- [ ] Outputs PNGs showing ice detection results committed
 
 ---
 
