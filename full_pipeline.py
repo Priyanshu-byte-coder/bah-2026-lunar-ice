@@ -107,8 +107,21 @@ def stage1_ice_detection(args, output_dir: Path):
     ckpt_path = Path(args.checkpoint)
     checkpoint = torch.load(ckpt_path, map_location=device)
     n_channels = checkpoint.get('in_channels', 3)
+
+    # Auto-detect embed_dim from checkpoint weights (avoids mismatch when
+    # west model was trained with embed_dim=64 vs east embed_dim=128)
+    state = checkpoint['model_state_dict']
+    detected_embed = state.get('radar_encoder.ms_conv1.weight',
+                               state.get('radar_encoder.ms_conv3.weight',
+                               None))
+    if detected_embed is not None:
+        embed_dim = int(detected_embed.shape[0])
+    else:
+        embed_dim = checkpoint.get('embed_dim', 128)
+    logger.info(f"Auto-detected embed_dim={embed_dim} from checkpoint")
+
     model = LunarIceNet(in_channels=n_channels, physics_features=5,
-                        embed_dim=128, num_heads=4, num_attn_layers=2,
+                        embed_dim=embed_dim, num_heads=4, num_attn_layers=2,
                         patch_size=args.patch_size).to(device)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
