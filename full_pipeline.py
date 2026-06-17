@@ -98,7 +98,7 @@ def stage1_ice_detection(args, output_dir: Path):
     # Load data
     logger.info(f"Loading DFSAR {args.direction} direction...")
     loader = DFSARMosaicLoader(args.data_dir)
-    subsample = 2 if args.direction == 'west' else 1
+    subsample = 3 if args.direction == 'west' else 1  # west trained at 3x; 2x = OOM
     features = loader.load_single_direction(args.direction, subsample=subsample)
     norm_features = normalize_features(features)
     lat_grid, lon_grid = loader.get_coordinates()
