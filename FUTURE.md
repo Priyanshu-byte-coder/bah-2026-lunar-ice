@@ -1,217 +1,134 @@
-# LunarIceNet — Remaining Work & Hackathon Timeline
+# LunarIceNet — Roadmap & Hackathon Timeline
 
 ## Hackathon Dates (BAH 2026) — OFFICIAL
 
-| Phase | Start | End | Status |
-|-------|-------|-----|--------|
-| **Idea Submission** | Tue Jun 09, 5:00 PM IST | **Wed Jul 01, 11:59 PM IST** | 🔴 LIVE — closes in ~14 days |
-| **Evaluation** | Thu Jul 02, 12:08 PM IST | Sun Jul 19, 11:59 PM IST | Pending |
-| **Shortlist Announced** | Mon Jul 20, 9:00 AM IST | Mon Jul 20, 11:59 PM IST | Pending |
-| **Induction Session** | Tue Jul 21, 4:00 PM IST | Tue Jul 21, 5:00 PM IST | Pending |
-| **Finale (30-hr hack)** | **Thu Aug 06, 8:00 AM IST** | **Fri Aug 07, 7:00 PM IST** | Pending |
-| **Grand Final Submission** | Thu Aug 06, 5:00 PM IST | **Fri Aug 07, 9:00 AM IST** | Pending |
+| Phase | Date | Status |
+|-------|------|--------|
+| **Idea Submission** | Jun 09 → **Jul 01, 11:59 PM IST** | LIVE — ~12 days left |
+| **Evaluation** | Jul 02 → Jul 19 | Pending |
+| **Shortlist Announced** | Jul 20 | Pending |
+| **Induction Session** | Jul 21, 4-5 PM IST | Pending |
+| **Finale (30-hr hack)** | **Aug 06, 8 AM** → **Aug 07, 7 PM IST** | Pending |
+| **Final Submission** | Aug 06, 5 PM → **Aug 07, 9 AM IST** | Pending |
 
-### Critical Deadlines
-- **Jul 01 11:59 PM IST** — Idea submission closes (~14 days from now). Repo + proposal must be clean.
-- **Jul 20** — Shortlist announced. If selected → induction Jul 21.
-- **Aug 06 5:00 PM IST** — 30-hr submission window opens. Everything must be ready to run live.
-- **Aug 07 9:00 AM IST** — Final code/report submission deadline.
-- **Aug 07 7:00 PM IST** — Presentations end.
+### What Phase 1 Requires (Idea Submission by Jul 1)
+- **PPTX presentation** using official template (10 slides)
+- Concept/idea proposal — NOT a working prototype
+- Upload via Hack2skill portal
+- We already have a working system = massive advantage
 
-### What to do before Jul 01 (idea phase close)
-- [ ] Verify proposal PDF uploaded to portal
-- [ ] GitHub repo public and polished (README done ✓)
-- [ ] West pipeline run + results in outputs/west/
-- [ ] Outputs PNGs showing ice detection results committed
+### What Phase 2 Requires (Finale Aug 6-7)
+- 30-hour live coding hackathon
+- Working prototype demonstrated to ISRO scientists
+- Code + results + presentation
 
 ---
 
-## Current Status
+## Current Status (Updated 2026-06-19)
 
-### Models Trained
+### Models
 
-| Model | F1 | Precision | Recall | Status |
-|-------|----|-----------|--------|--------|
-| East (embed=128, patch=64) | **0.8428** | 0.8906 | 0.7999 | `checkpoints/east_best_model.pth` ✓ |
-| West (embed=128, patch=32) | **0.9383** | 0.9412 | 0.9353 | `checkpoints/west_best_model.pth` ✓ |
+| Model | F1 | Precision | Recall | Checkpoint |
+|-------|----|-----------|--------|------------|
+| East (embed=128, attn=2) | **0.8428** | 0.8906 | 0.7999 | `checkpoints/best_model.pth` |
+| West (embed=64, attn=1) | **0.9383** | 0.9412 | 0.9353 | `checkpoints/west_best_model.pth` |
 
-### Pipeline Runs
+### Pipeline Results
 
 | Stage | East | West |
 |-------|------|------|
-| 1. Ice detection (inference) | ✓ (cached .npy) | ✗ NOT RUN |
-| 2. Landing sites (real LOLA slopes) | ✓ 93.3% coverage | ✗ |
-| 3. Rover traverse | ✗ FAILED (traverse fix applied, needs re-run) | ✗ |
-| 4. Ice volume | ✓ global=8.4M m³, per-crater=0 (expected east) | ✗ |
-| 5. Visualization + report | ✓ | ✗ |
+| 1. Ice detection | **8.4M m³** (54.9M pixels) | **5.6M m³** (85M pixels) |
+| 2. Landing sites | Top: -86.0°, -28.7° (score 0.728) | Top: -82.9°, 126.8° (score 0.771) |
+| 3. Rover traverse | **60 wp, 1.76 km**, max slope 18.5° | **6 wp, 0.12 km**, max slope 5.0° |
+| 4. Ice volume | 8.4M m³, CI [3.7M–14.6M] | 5.6M m³, CI [2.5M–9.7M] |
+| 5. Reports + maps | All PNGs + TXT | All PNGs + TXT |
+| LOLA DEM coverage | **93.3%** (real slopes) | 24.6% (75% default 5°) |
+
+### Presentation
+- `presentation/LunarIceNet_BAH2026_PS8.pptx` — filled with content + team
+- Team: Priyanshu Doshi (leader), Shub Patel, Meer Patel
 
 ---
 
-## What's Left — Priority Order
+## Before Jul 1 — Idea Submission Checklist
 
-### P0 — Critical (must do before submission)
+- [x] East pipeline complete with real LOLA slopes
+- [x] West pipeline complete (F1=0.938)
+- [x] Both mission reports clean
+- [x] Per-crater ice volume breakdown
+- [x] README comprehensive
+- [x] .gitignore clean
+- [x] Presentation filled with content
+- [ ] Presentation upgraded with visuals + result images
+- [ ] East vs West comparison plot (replicates PRL 2026 finding)
+- [ ] Upload to Hack2skill portal
+- [ ] Verify GitHub repo is public and polished
 
-#### 1. Run east pipeline with traverse fix
-```bash
-python full_pipeline.py \
-  --use-cached \
-  --direction east \
-  --checkpoint checkpoints/east_best_model.pth \
-  --lola-dem data/raw/lola_dem/ldem_85s_40m.img
-```
-- Fix applied: now targets Site #2 (5.3 km away) not Cabeus (100 km)
-- Expected output: working rover traverse map + report
-- Time: ~45 min
+---
 
-#### 2. Run west pipeline (MOST IMPORTANT — this is where PRL 2026 confirmed ice)
-```bash
-python full_pipeline.py \
-  --direction west \
-  --checkpoint checkpoints/west_best_model.pth \
-  --lola-dem data/raw/lola_dem/ldem_85s_40m.img \
-  --output-dir outputs/west
-```
-- West model F1=0.938, trained on 67K patches from 37M valid pixels
-- West has 85,525 pixels with CPR>1 — real ice signal present
-- Expect: non-zero per-crater volumes in Faustini, Shoemaker, Haworth DPSRs
-- This validates the entire system against PRL 2026 published science
-- Time: ~2-3 hours (inference on 8265×8061 grid)
+## Finale Preparation (Aug 6-7) — What to Build
 
-#### 3. West cached pipeline (after inference completes)
-```bash
-python full_pipeline.py \
-  --use-cached \
-  --direction west \
-  --checkpoint checkpoints/west_best_model.pth \
-  --lola-dem data/raw/lola_dem/ldem_85s_40m.img \
-  --output-dir outputs/west
-```
+### P0 — Must Have
 
-### P1 — High Priority
+1. **Streamlit Dashboard**
+   - Interactive map: click → see ice prob, depth, slope
+   - Side-by-side east/west comparison
+   - Real-time inference on cropped DFSAR tiles
+   - Demo-ready for judges
 
-#### 4. Fix per-crater ice volume (east)
-East per-crater = 0. Two reasons:
-- DPSRs in east-look don't show ice (scientifically correct per PRL 2026)
-- But the crater-boundary lookup may also have coord mismatch issues
+2. **GeoTIFF Export**
+   - Ice probability as GeoTIFF with UPS projection
+   - Importable into QGIS/ArcGIS — science-grade output
+   - Shows system produces real spatial data, not just PNGs
 
-After west run, compare per-crater west volumes. If still 0, debug `estimate_volume_per_crater()` coordinate matching.
+3. **PRL 2026 Validation Table**
+   - Quantitative comparison: our CPR>1 detections vs Sinha et al. DPSRs
+   - Table: crater, our ice_prob, published CPR, agreement Y/N
+   - This is the scientific credibility killer
 
-#### 5. Add LOLA slope to west outputs
-West LOLA coverage will be same 93.3% (same DEM, same DFSAR mosaic size).
-Landing sites for west should show REAL slopes too.
+### P1 — Should Have
 
-#### 6. Commit checkpoints metadata
-```bash
-git add checkpoints/training_history.json
-git commit -m "feat: west model training complete F1=0.938"
-```
+4. **Multi-Resolution Depth Profile**
+   - Combine L-band (deep, λ=24cm) + S-band (shallow, λ=12cm)
+   - Depth-resolved ice stratigraphy — novel contribution
+   - Goes beyond what PRL 2026 published
 
-### P2 — Should Do
+5. **Improved West LOLA Coverage**
+   - Download additional LOLA DEMs covering west DFSAR extent
+   - Target: 80%+ real slope coverage (currently 24.6%)
 
-#### 7. Compare east vs west ice maps side-by-side
-Generate overlay plot: same craters, east CPR vs west CPR, show ice appears only in west.
-This is the killer visual for judges — directly replicating PRL 2026 finding.
+6. **3D Terrain Visualization**
+   - plotly 3D mesh of LOLA DEM + ice probability overlay
+   - Interactive rotation — judges can explore landing sites
+   - Wow factor for live demo
 
-```python
-# outputs/comparison_east_west.png
-# Left panel: east ice_prob on Faustini
-# Right panel: west ice_prob on Faustini
-# Annotation: "Ice confirmed in West look (PRL 2026)"
-```
+### P2 — Nice to Have
 
-#### 8. Per-crater volume table
-Build clean output table for west pipeline:
-
-| Crater | DPSR | Vol (m³) | Mass (Mt) | Ice frac | Depth (m) |
-|--------|------|----------|-----------|----------|-----------|
-| Faustini | DPSR-1 | ? | ? | ? | ? |
-| Shoemaker | DPSR-1 | ? | ? | ? | ? |
-| Haworth | DPSR-1 | ? | ? | ? | ? |
-
-This is direct validation against PRL 2026 Table 1.
-
-#### 9. Improve traverse visualization
-Current: A* path on slope map.
-Better: Overlay ice probability + slope + annotate sampling stops.
-
-#### 10. Update training_history.json with west epochs
-Current file has east metrics only. Append west training curve.
-
-### P3 — Nice to Have
-
-#### 11. Streamlit dashboard
-```bash
-streamlit run dashboard/app.py
-```
-Interactive: click map → see ice prob, depth, landing score at that location.
-Demo-ready for judges.
-
-#### 12. Comparison with PRL 2026 Table 1
-Quantitative comparison of our CPR>1 detections vs Sinha et al. 4 DPSRs.
-
-#### 13. Export GeoTIFF
-Ice probability map as GeoTIFF with UPS projection — importable into QGIS/ArcGIS.
-Shows system produces science-grade spatial data.
-
-#### 14. Multi-resolution depth profile
-Combine L-band (deep) + S-band (shallow) for depth-resolved ice stratigraphy.
+7. **Ensemble Model** — Average east+west predictions for robust ice map
+8. **Uncertainty Calibration** — Temperature scaling on validation set
+9. **Transfer to New Data** — Show model works on unseen DFSAR tiles
+10. **Paper Draft** — arXiv-style writeup for credibility
 
 ---
 
 ## Commands Cheatsheet
 
 ```bash
-# East full re-run (use cached inference)
+# East (cached, ~15 min)
 python full_pipeline.py --use-cached --direction east \
-  --checkpoint checkpoints/east_best_model.pth \
+  --checkpoint checkpoints/best_model.pth \
   --lola-dem data/raw/lola_dem/ldem_85s_40m.img
 
-# West full run (PRIORITY — needs ~3 hrs)
-python full_pipeline.py --direction west \
-  --checkpoint checkpoints/west_best_model.pth \
-  --lola-dem data/raw/lola_dem/ldem_85s_40m.img \
-  --output-dir outputs/west
-
-# West cached run (after inference .npy saved)
+# West (cached, ~20 min)
 python full_pipeline.py --use-cached --direction west \
   --checkpoint checkpoints/west_best_model.pth \
   --lola-dem data/raw/lola_dem/ldem_85s_40m.img \
   --output-dir outputs/west
 
-# Retrain east (if needed, ~2 hrs)
-python train_real.py --direction east --epochs 30 --batch-size 16 --embed-dim 128
-
-# Retrain west (~9.5 hrs, do overnight)
-python train_real.py --direction west --epochs 30 --batch-size 4 \
-  --patch-size 32 --stride 32 --subsample 3
+# Generate presentation
+cd presentation && python fill_presentation.py
 ```
 
 ---
 
-## Key Files
-
-| File | Purpose | Status |
-|------|---------|--------|
-| `full_pipeline.py` | 5-stage pipeline | ✓ (traverse fix applied) |
-| `train_real.py` | Training on DFSAR | ✓ |
-| `checkpoints/east_best_model.pth` | East model F1=0.843 | ✓ |
-| `checkpoints/west_best_model.pth` | West model F1=0.938 | ✓ NEW |
-| `outputs/ice_probability_east.npy` | East predictions cached | ✓ (600 MB) |
-| `outputs/west/` | West outputs | ✗ EMPTY |
-| `outputs/mission_report_east.txt` | East mission report | ✓ |
-| `outputs/mission_report_west.txt` | West mission report | ✗ |
-
----
-
-## What Winning Looks Like
-
-1. **West per-crater ice volumes > 0** in Faustini DPSR — matches PRL 2026 published finding
-2. **Working rover traverse** from landing site to nearby ice-rich target
-3. **Side-by-side east/west comparison** showing ice appears only in west (PRL 2026 replication)
-4. **Honest uncertainty** — Monte Carlo CI on ice volume, not fake precision
-5. **Real terrain** — 93.3% LOLA DEM coverage for slopes, not synthetic proxy
-6. **Complete pipeline** — single command produces all outputs
-
----
-
-*Last updated: 2026-06-17*
+*Last updated: 2026-06-19*

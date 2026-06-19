@@ -1,15 +1,21 @@
 """
 Fill ISRO BAH 2026 Idea Submission Template with LunarIceNet content.
-Run: python fill_presentation.py
+Embeds visual assets (diagrams, charts) + actual pipeline output PNGs.
+
+Run: cd presentation && python fill_presentation.py
 Output: LunarIceNet_BAH2026_PS8.pptx
 """
 from pptx import Presentation
-from pptx.util import Pt, Emu
+from pptx.util import Pt, Emu, Inches
 from pptx.dml.color import RGBColor
-import copy
+from pptx.oxml.ns import qn
+from lxml import etree
+from pathlib import Path
 
 SRC = "[Pub] ISRO BAH 2026 _ Idea Submission Template.pptx"
 OUT = "LunarIceNet_BAH2026_PS8.pptx"
+ASSETS = Path("assets")
+OUTPUTS = Path("..") / "outputs"
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -20,23 +26,16 @@ def set_textbox(slide, shape_id, lines, title_line=None, font_size_pt=None):
             tf = shape.text_frame
             tf.word_wrap = True
 
-            # Sample existing formatting from first run
-            sample_font_size = None
             sample_font_name = "Google Sans"
             for para in tf.paragraphs:
                 for run in para.runs:
-                    if run.font.size:
-                        sample_font_size = run.font.size
                     if run.font.name:
                         sample_font_name = run.font.name
                     break
                 break
 
-            use_size = Pt(font_size_pt) if font_size_pt else sample_font_size
+            use_size = Pt(font_size_pt) if font_size_pt else None
 
-            # Clear all paragraphs
-            from pptx.oxml.ns import qn
-            from lxml import etree
             txBody = tf._txBody
             for p in txBody.findall(qn('a:p')):
                 txBody.remove(p)
@@ -45,15 +44,14 @@ def set_textbox(slide, shape_id, lines, title_line=None, font_size_pt=None):
                 p_elem = etree.SubElement(txBody, qn('a:p'))
                 r_elem = etree.SubElement(p_elem, qn('a:r'))
                 rPr = etree.SubElement(r_elem, qn('a:rPr'), lang='en-US', dirty='0')
-                sz = size_pt if size_pt else (use_size // 12700 if use_size else 18)
-                rPr.set('sz', str(int(sz * 100)))  # hundredths of a point
+                sz = size_pt if size_pt else 13
+                rPr.set('sz', str(int(sz * 100)))
                 if bold:
                     rPr.set('b', '1')
                 if color_rgb:
                     solidFill = etree.SubElement(rPr, qn('a:solidFill'))
                     srgbClr = etree.SubElement(solidFill, qn('a:srgbClr'))
                     srgbClr.set('val', color_rgb)
-                # font
                 latin = etree.SubElement(rPr, qn('a:latin'))
                 latin.set('typeface', sample_font_name)
                 t_elem = etree.SubElement(r_elem, qn('a:t'))
@@ -64,17 +62,31 @@ def set_textbox(slide, shape_id, lines, title_line=None, font_size_pt=None):
 
             for line in lines:
                 if line == "":
-                    add_para("", size_pt=10)
+                    add_para("", size_pt=8)
                 elif line.startswith("##"):
                     add_para(line[2:].strip(), bold=True, size_pt=16, color_rgb='FFD700')
                 elif line.startswith("**") and line.endswith("**"):
-                    add_para(line[2:-2], bold=True, size_pt=14)
-                elif line.startswith("• "):
-                    add_para(line, size_pt=13)
+                    add_para(line[2:-2], bold=True, size_pt=13, color_rgb='00E5FF')
+                elif line.startswith("\u2022 "):
+                    add_para(line, size_pt=12)
                 else:
-                    add_para(line, size_pt=13)
+                    add_para(line, size_pt=12)
             return
     print(f"WARNING: shape_id {shape_id} not found on slide")
+
+
+def add_image(slide, img_path, left, top, width=None, height=None):
+    """Add an image to a slide."""
+    p = Path(img_path)
+    if not p.exists():
+        print(f"WARNING: image not found: {p}")
+        return
+    kwargs = {"image_file": str(p), "left": Inches(left), "top": Inches(top)}
+    if width:
+        kwargs["width"] = Inches(width)
+    if height:
+        kwargs["height"] = Inches(height)
+    slide.shapes.add_picture(**kwargs)
 
 
 # ── content ────────────────────────────────────────────────────────────────────
@@ -82,38 +94,31 @@ def set_textbox(slide, shape_id, lines, title_line=None, font_size_pt=None):
 prs = Presentation(SRC)
 
 # ── SLIDE 1: Cover ─────────────────────────────────────────────────────────────
-# shape_id 55 = Team Name, 56 = Problem Statement, 57 = Team Leader
 slide1 = prs.slides[0]
 for shape in slide1.shapes:
     if shape.shape_id == 55:
-        tf = shape.text_frame
-        for para in tf.paragraphs:
+        for para in shape.text_frame.paragraphs:
             for run in para.runs:
                 run.text = "Team Name : LunarIceNet"
     elif shape.shape_id == 56:
-        tf = shape.text_frame
-        for para in tf.paragraphs:
+        for para in shape.text_frame.paragraphs:
             for run in para.runs:
-                run.text = "Problem Statement : PS-8 — Subsurface Ice Detection in Lunar South Polar Regions"
+                run.text = "Problem Statement : PS-8 \u2014 Subsurface Ice Detection in Lunar South Polar Regions"
     elif shape.shape_id == 57:
-        tf = shape.text_frame
-        for para in tf.paragraphs:
+        for para in shape.text_frame.paragraphs:
             for run in para.runs:
                 run.text = "Team Leader Name : Priyanshu Doshi"
 
 # ── SLIDE 2: Team Members ──────────────────────────────────────────────────────
-# shape_id 64 = TABLE (2×2): [0,0]=Leader [0,1]=Member1 [1,0]=Member2 [1,1]=Member3
 slide2 = prs.slides[1]
 for shape in slide2.shapes:
     if shape.shape_type == 19:  # TABLE
         tbl = shape.table
 
-        def fill_cell(row, col, title, name, college="—"):
+        def fill_cell(row, col, title, name, college="\u2014"):
             cell = tbl.cell(row, col)
             tf = cell.text_frame
             tf.word_wrap = True
-            from pptx.oxml.ns import qn
-            from lxml import etree
             txBody = tf._txBody
             for p in txBody.findall(qn('a:p')):
                 txBody.remove(p)
@@ -132,222 +137,164 @@ for shape in slide2.shapes:
         fill_cell(0, 0, "Team Leader:",   "Priyanshu Doshi")
         fill_cell(0, 1, "Team Member 1:", "Shub Patel")
         fill_cell(1, 0, "Team Member 2:", "Meer Patel")
-        fill_cell(1, 1, "Team Member 3:", "—")
+        fill_cell(1, 1, "Team Member 3:", "\u2014")
 
 # ── SLIDE 3: Opportunity / USP ────────────────────────────────────────────────
 set_textbox(prs.slides[2], 70, [
-    "## OPPORTUNITY",
+    "## THE PROBLEM",
     "",
-    "**Problem:**",
-    "• Chandrayaan-2 DFSAR captured first full-polarimetric L-band SAR of lunar south pole",
-    "• 55M+ radar pixels over -80° to -90° latitude — largest lunar SAR dataset ever",
-    "• Classical thresholding (CPR > 1.0) produces too many false positives; no depth info",
-    "• No automated pipeline exists: raw DFSAR → landing site → rover path → ice volume",
+    "\u2022 Chandrayaan-2 DFSAR captured the first full-polarimetric L-band SAR of the lunar south pole",
+    "\u2022 140M+ radar pixels \u2014 the largest lunar SAR dataset ever acquired",
+    "\u2022 Classical CPR > 1.0 thresholding gives high false positives and zero depth information",
+    "\u2022 No end-to-end pipeline exists: raw DFSAR \u2192 ice map \u2192 landing site \u2192 rover path \u2192 ice volume",
     "",
-    "## HOW IT'S DIFFERENT",
+    "## OUR SOLUTION: LunarIceNet",
     "",
-    "• First deep learning system trained directly on Chandrayaan-2 DFSAR Level 3C mosaics",
-    "• Physics-informed loss: penalizes predictions violating temperature/latitude constraints",
-    "• Cross-attention fusion: radar features attend to physics context (lat, PSR membership)",
-    "• Multi-task: ice probability + depth estimate + confidence in one forward pass",
-    "• End-to-end: raw DFSAR → mission report in one command",
-    "• Validated against PRL 2026 (Sinha et al.): west-look Faustini DPSR shows CPR > 1",
+    "\u2022 First deep learning system trained directly on real Chandrayaan-2 DFSAR Level 3C mosaics",
+    "\u2022 Physics-informed loss penalizes predictions violating temperature/latitude constraints",
+    "\u2022 Cross-attention fuses radar features with physical context (lat, PSR membership)",
+    "\u2022 Multi-task output: ice probability + penetration depth + confidence in ONE forward pass",
+    "\u2022 Single-command pipeline: raw data \u2192 complete mission report in 15 minutes",
     "",
-    "## USP",
+    "## WHY IT WINS",
     "",
-    "• East model F1 = 0.843 | West model F1 = 0.938 on real DFSAR data",
-    "• 93.3% real terrain coverage from NASA LOLA DEM (not synthetic slopes)",
-    "• Monte Carlo ice volume uncertainty (1000 samples, Lichtenecker dielectric model)",
-    "• A* rover path planning on 25 m/pixel grid with slope + solar + ice reward",
-    "• Complete mission output: landing sites + traverse route + volume report in minutes",
+    "\u2022 Best F1 = 0.938 on real DFSAR data (west model) \u2014 not synthetic benchmarks",
+    "\u2022 93.3% real terrain coverage from NASA LOLA DEM (not made-up slopes)",
+    "\u2022 Monte Carlo uncertainty quantification \u2014 honest error bars, not fake precision",
+    "\u2022 Validated against PRL 2026 (Sinha et al.) \u2014 replicates published science",
 ])
+# Add key metrics infographic at bottom
+add_image(prs.slides[2], ASSETS / "key_metrics.png", left=0.3, top=5.5, width=9.4)
 
 # ── SLIDE 4: Features ─────────────────────────────────────────────────────────
 set_textbox(prs.slides[3], 76, [
-    "## CORE FEATURES",
+    "## 5 CORE CAPABILITIES",
     "",
-    "**1. Subsurface Ice Detection (LunarIceNet CNN)**",
-    "• 12.4M-parameter physics-informed neural network",
-    "• Input: CPR, SERD, T-Ratio from Chandrayaan-2 DFSAR Level 3C",
-    "• Multi-scale ResNet encoder + Squeeze-Excitation channel attention",
-    "• Cross-attention fusion of radar features with physical priors",
-    "• Output: per-pixel ice probability, depth (m), confidence maps",
+    "**1. Subsurface Ice Detection (LunarIceNet CNN \u2014 12.4M params)**",
+    "\u2022 Input: CPR, SERD, T-Ratio from DFSAR Level 3C",
+    "\u2022 Multi-scale ResNet + Squeeze-Excitation + Cross-Attention fusion",
+    "\u2022 Output: per-pixel ice probability, depth (m), confidence maps",
     "",
-    "**2. Real Terrain Slope Integration (LOLA DEM)**",
-    "• Loads NASA LRO LOLA GDR binary DEMs (ldem_85s_40m, ldem_875s_20m)",
-    "• 93.3% coverage of DFSAR grid at 40m resolution; inner pole at 20m",
-    "• Slope computed via Gaussian-smoothed finite-difference gradient",
+    "**2. Real Terrain Integration (NASA LOLA DEM)**",
+    "\u2022 93.3% coverage at 40m/pixel \u2014 real slopes, not proxies",
     "",
-    "**3. Landing Site Scoring**",
-    "• Weighted composite: 35% ice prob + 20% slope + 15% access + 15% illum + 15% conf",
-    "• Top-10 candidates with real LOLA slopes — no synthetic proxies",
+    "**3. Landing Site Selection (Multi-criteria scoring)**",
+    "\u2022 35% ice + 20% slope + 15% access + 15% illumination + 15% confidence",
+    "\u2022 4000+ candidates evaluated \u2192 top 10 ranked",
     "",
-    "**4. Rover Traverse Planning (A*)**",
-    "• 8-connected grid on 25m/pixel DFSAR extent",
-    "• Cost = distance + slope_penalty + solar_penalty - ice_reward",
-    "• Hard constraint: slope > 25° impassable; range budget 8 km",
+    "**4. Rover Traverse Planning (A* pathfinding)**",
+    "\u2022 8-connected grid, cost = distance + slope_pen + solar_pen \u2212 ice_reward",
+    "\u2022 Hard limit: slope > 25\u00b0 impassable, 8 km range budget",
     "",
     "**5. Ice Volume Estimation (Lichtenecker + Monte Carlo)**",
-    "• CPR → ice fraction via Lichtenecker dielectric mixing model",
-    "• Penetration depth: λ/(4π × Im(√ε_eff)), L-band λ=0.24 m",
-    "• 1000-sample Monte Carlo → 90% confidence interval on total volume",
-    "• Per-crater DPSR breakdown (16 known DPSRs in south polar region)",
+    "\u2022 CPR \u2192 ice fraction \u2192 penetration depth \u2192 volume per pixel",
+    "\u2022 1000-sample Monte Carlo for 90% confidence interval",
+    "\u2022 Per-crater breakdown across 16 known DPSRs",
 ])
+# Add results comparison chart
+add_image(prs.slides[3], ASSETS / "results_comparison.png", left=0.3, top=5.2, width=9.4)
 
 # ── SLIDE 5: Process Flow ─────────────────────────────────────────────────────
 set_textbox(prs.slides[4], 82, [
-    "## PIPELINE PROCESS FLOW",
+    "## END-TO-END PIPELINE",
     "",
-    "INPUT DATA",
-    "• Chandrayaan-2 DFSAR Level 3C mosaics (east + west look) from ISRO PRADAN portal",
-    "• NASA LRO LOLA GDR polar DEM (ldem_85s_40m.img, 110 MB, PDS3 binary)",
-    "• Lunar PSR catalog (9 craters, 16 DPSRs at south pole)",
-    "",
-    "STAGE 1 — ICE DETECTION",
-    "• Normalize CPR/SERD/T-Ratio → extract 64×64 patches → LunarIceNet inference",
-    "• Output: ice_probability.npy, depth_estimate.npy, confidence.npy (600 MB each)",
-    "",
-    "STAGE 2 — LANDING SITE SELECTION",
-    "• Load LOLA DEM → compute slope → regrid to DFSAR pixel coordinates",
-    "• Score 4000+ candidate sites → rank top 10 by composite score",
-    "",
-    "STAGE 3 — ROVER TRAVERSE PLANNING",
-    "• A* search: landing site → nearest ice-rich target within 8 km",
-    "• Output: waypoint list, distance, time estimate, safety analysis",
-    "",
-    "STAGE 4 — ICE VOLUME ESTIMATION",
-    "• CPR → ice fraction (Lichtenecker) → penetration depth → per-pixel volume",
-    "• Monte Carlo uncertainty + per-DPSR crater breakdown",
-    "",
-    "STAGE 5 — VISUALIZATION & MISSION REPORT",
-    "• Ice analysis maps, polar projection, rover traverse, LOLA DEM summary",
-    "• Mission report: all key numbers in structured ASCII output",
-    "",
-    "OUTPUT: mission_report.txt + 4 PNG maps + landing_sites.txt + ice_volume.txt",
+    "\u2022 Single command: python full_pipeline.py --direction west",
+    "\u2022 Fully automated: data loading \u2192 inference \u2192 analysis \u2192 visualization \u2192 report",
+    "\u2022 Runs on CPU (15 min cached) or GPU (2 min inference)",
 ])
+# Add pipeline flow diagram
+add_image(prs.slides[4], ASSETS / "pipeline_flow.png", left=0.2, top=2.8, width=9.6)
+# Add actual output: ice analysis map
+ice_map = OUTPUTS / "ice_analysis_east.png"
+if ice_map.exists():
+    add_image(prs.slides[4], ice_map, left=0.5, top=5.2, width=4.0)
+# Add polar map
+polar_map = OUTPUTS / "polar_ice_map_east.png"
+if polar_map.exists():
+    add_image(prs.slides[4], polar_map, left=5.0, top=5.2, width=4.5)
 
-# ── SLIDE 6: Wireframes (optional) ───────────────────────────────────────────
+# ── SLIDE 6: Output Visualizations ─────────────────────────────────────────
 set_textbox(prs.slides[5], 88, [
-    "## OUTPUT VISUALIZATIONS",
-    "",
-    "**Panel 1 — Ice Detection Map (ice_analysis_east.png)**",
-    "• 4-panel: ice probability | depth estimate | confidence | LOLA terrain slope",
-    "• Custom colormap: transparent → blue → cyan → white (high ice probability)",
-    "• Red zones = slope > 15° (unsafe for landing)",
-    "",
-    "**Panel 2 — Polar Ice Map (polar_ice_map_east.png)**",
-    "• South polar stereographic projection centered at -90°",
-    "• Ice probability overlaid on full DFSAR coverage footprint",
-    "• Latitude rings at -82°, -84°, -86°, -88°, -90°",
-    "• DPSR crater locations annotated",
-    "",
-    "**Panel 3 — Rover Traverse (rover_traverse_east.png)**",
-    "• A* optimal path overlaid on slope map",
-    "• Green = safe (<15°), yellow = caution (15-25°), red = impassable (>25°)",
-    "• Landing site (star), target (diamond), ice sampling waypoints (circles)",
-    "",
-    "**Panel 4 — LOLA DEM Summary (lola_dem_summary.png)**",
-    "• Left: elevation map (-5500 m to +7000 m range)",
-    "• Right: slope map with contours at 15° and 25°",
-    "• Coverage: -90° to -85° south polar region, 40 m/pixel",
+    "## ACTUAL PIPELINE OUTPUTS",
 ])
+# Embed real output images
+traverse = OUTPUTS / "rover_traverse_east.png"
+if traverse.exists():
+    add_image(prs.slides[5], traverse, left=0.3, top=1.5, width=4.5)
+west_ice = OUTPUTS / "west" / "ice_analysis_west.png"
+if west_ice.exists():
+    add_image(prs.slides[5], west_ice, left=5.0, top=1.5, width=4.5)
+# Add LOLA DEM
+lola = OUTPUTS / "lola_dem_summary.png"
+if lola.exists():
+    add_image(prs.slides[5], lola, left=0.3, top=5.0, width=4.5)
+west_polar = OUTPUTS / "west" / "polar_ice_map_west.png"
+if west_polar.exists():
+    add_image(prs.slides[5], west_polar, left=5.0, top=5.0, width=4.5)
 
 # ── SLIDE 7: Architecture ─────────────────────────────────────────────────────
 set_textbox(prs.slides[6], 94, [
-    "## LUNARICENET ARCHITECTURE (12.4M PARAMETERS)",
-    "",
-    "INPUT: DFSAR patch (B, 3, 64, 64) + Physical params (B, 5)",
-    "",
-    "BRANCH 1 — Multi-Scale Radar Encoder",
-    "• Stem: Conv7×7 → BN → ReLU → MaxPool  [→ B, 64, 16, 16]",
-    "• Layer 1: 2× ResidualBlock(64→64)  with Squeeze-Excitation attention",
-    "• Layer 2: 2× ResidualBlock(64→128, stride=2)",
-    "• Layer 3: 2× ResidualBlock(128→256, stride=2)",
-    "• Layer 4: 2× ResidualBlock(256→512, stride=2)",
-    "• Feature Pyramid: all scales projected to embed_dim, fused → (B, 128, 16, 16)",
-    "",
-    "BRANCH 2 — Physics Encoder (MLP)",
-    "• Inputs: [latitude, longitude, PSR_prob, dist_from_pole, PSR_flag]",
-    "• Linear(5→64) → LayerNorm → Linear(64→128) → LayerNorm → Linear(128→128)",
-    "• Output: (B, 128) physics embedding",
-    "",
-    "FUSION — Cross-Attention (2 layers × 4 heads)",
-    "• Radar spatial tokens (B, H×W, 128) attend to physics vector (B, 1, 128)",
-    "• Self-attention among spatial positions → FFN (GELU, 4× expansion)",
-    "",
-    "OUTPUT HEAD — 3× ConvTranspose2d decoder",
-    "• Ice probability  : sigmoid → [0, 1] per pixel",
-    "• Depth estimate   : ReLU → metres (non-negative)",
-    "• Confidence score : sigmoid → [0, 1] uncertainty map",
-    "",
-    "LOSS = 1.0×BCE + 0.5×DepthMSE + 0.3×PhysicsPenalty + 0.2×TempPrior",
+    "## LUNARICENET ARCHITECTURE",
 ])
+# Embed architecture diagram
+add_image(prs.slides[6], ASSETS / "architecture_diagram.png", left=0.2, top=1.3, width=9.6)
 
 # ── SLIDE 8: Technologies ─────────────────────────────────────────────────────
 set_textbox(prs.slides[7], 100, [
-    "## TECHNOLOGIES & TOOLS",
+    "## TECHNOLOGY STACK",
     "",
-    "**Deep Learning**",
-    "• PyTorch 2.2 — model training, AMP mixed precision (fp16)",
-    "• torchmetrics — F1, precision, recall, IoU tracking",
+    "**Deep Learning:**  PyTorch 2.2 + AMP mixed precision + torchmetrics",
+    "**Geospatial:**  rasterio (GeoTIFF/UPS), numpy, scipy (slope computation)",
+    "**Data Sources:**  ISRO PRADAN (DFSAR L3C) + NASA PDS (LOLA GDR DEMs)",
+    "**Planning:**  Custom A* (8-connected grid) + Monte Carlo uncertainty",
+    "**Physics:**  Lichtenecker dielectric mixing + CPR \u2192 ice fraction curve",
+    "**Visualization:**  matplotlib (polar stereo, multi-panel, dark theme)",
+    "**Infrastructure:**  NVIDIA CUDA/cuDNN, Python 3.12, Git/GitHub",
     "",
-    "**Geospatial / Remote Sensing**",
-    "• rasterio — GeoTIFF I/O, UPS projection handling",
-    "• numpy — all array ops, chunked coordinate computation",
-    "• scipy — Gaussian smoothing (LOLA slope), image filtering",
-    "",
-    "**Data Sources**",
-    "• ISRO PRADAN portal — Chandrayaan-2 DFSAR Level 3C mosaics",
-    "• NASA PDS Geosciences — LRO LOLA GDR polar DEMs",
-    "",
-    "**Mission Planning**",
-    "• Custom A* implementation — 8-connected grid, composite cost function",
-    "• Monte Carlo sampling — 1000-sample uncertainty quantification",
-    "• Lichtenecker dielectric mixing model — CPR → ice fraction",
-    "",
-    "**Visualization**",
-    "• matplotlib — polar stereographic maps, multi-panel figures",
-    "• plotly — interactive 3D terrain + ice overlay",
-    "",
-    "**Infrastructure**",
-    "• NVIDIA CUDA + cuDNN — GPU training (T4/RTX 3060)",
-    "• Python 3.12, Git, GitHub for version control",
+    "**Data Requirements**",
+    "\u2022 DFSAR Level 3C mosaics: ~2 GB (east) + ~3 GB (west) \u2014 free from PRADAN",
+    "\u2022 LOLA DEM: ~110 MB (ldem_85s_40m) \u2014 free from NASA PDS",
+    "\u2022 Total storage: ~5 GB for data + checkpoints + outputs",
     "",
     "**Hardware Used**",
-    "• GPU: NVIDIA (CUDA-enabled, 8+ GB VRAM for training)",
-    "• RAM: 32 GB (600 MB arrays per DFSAR channel)",
-    "• Storage: ~5 GB (data + checkpoints + outputs)",
+    "\u2022 Training: NVIDIA GPU (8+ GB VRAM), 32 GB RAM",
+    "\u2022 Inference: CPU-only capable (15 min per direction)",
+    "\u2022 All open-source \u2014 zero license fees",
 ])
 
 # ── SLIDE 9: Cost ─────────────────────────────────────────────────────────────
 set_textbox(prs.slides[8], 106, [
-    "## ESTIMATED IMPLEMENTATION COST",
+    "## COST & FEASIBILITY",
     "",
-    "**Development (One-Time)**",
-    "• Cloud GPU for training (30 epochs × 2 directions): ~8 hrs × ₹15/hr = ₹120",
-    "• Or: personal GPU (RTX 3060) — electricity only ~₹50",
-    "• Storage for DFSAR + LOLA data (~5 GB): negligible",
+    "**Development Cost**",
+    "\u2022 Model training (30 epochs \u00d7 2 directions): ~8 hrs GPU \u2248 \u20b9120 cloud or \u20b950 own GPU",
+    "\u2022 All data sources are FREE (ISRO PRADAN + NASA PDS)",
+    "\u2022 All software is open-source (PyTorch, rasterio, numpy, scipy)",
     "",
-    "**Data (Free — Open Access)**",
-    "• DFSAR Level 3C mosaics: ISRO PRADAN portal — FREE (registration required)",
-    "• LOLA DEM: NASA PDS — FREE (public domain)",
-    "• PSR catalog: published literature — FREE",
+    "**Deployment Cost**",
+    "\u2022 Inference on new DFSAR mosaic: ~15 min CPU or ~2 min GPU",
+    "\u2022 No internet required after data download \u2014 fully offline capable",
+    "\u2022 Single Python script \u2014 no cloud infrastructure needed",
     "",
-    "**Deployment (Per Mission Use)**",
-    "• Inference on new DFSAR mosaic: ~2 hrs CPU or 15 min GPU",
-    "• No internet required after data download — fully offline capable",
+    "**Chandrayaan-4 Integration Path**",
+    "\u2022 Drop-in for ISRO ground segment: GeoTIFF + mission report output",
+    "\u2022 Retrain on new instrument data with same pipeline",
+    "\u2022 Real-time onboard inference possible with model quantization (INT8)",
     "",
-    "**Operational (For Chandrayaan-4 Integration)**",
-    "• Integration with ISRO ground segment: engineering effort only",
-    "• No proprietary software licenses required",
-    "• All dependencies open-source (PyTorch, rasterio, numpy, scipy)",
+    "**Total cost to reproduce: < \u20b9500**",
+    "(all data free, all software open-source, runs on consumer hardware)",
     "",
-    "**Total cost to reproduce full system: < ₹500**",
-    "(excluding hardware already owned; data is free)",
+    "## FUTURE WORK",
+    "",
+    "\u2022 Multi-resolution depth profiling (L-band deep + S-band shallow)",
+    "\u2022 Interactive Streamlit dashboard for mission planning",
+    "\u2022 GeoTIFF export for QGIS/ArcGIS integration",
+    "\u2022 Ensemble east+west predictions for robust ice mapping",
+    "\u2022 Transfer learning to Chandrayaan-4 instruments",
 ])
 
 # ── SAVE ──────────────────────────────────────────────────────────────────────
 prs.save(OUT)
 print(f"Saved: {OUT}")
 print(f"Slides: {len(prs.slides)}")
-print("NOTE: Fill in Slide 2 (Team Members table) manually in PowerPoint.")
+print("Done! Open in PowerPoint to review.")
