@@ -102,8 +102,37 @@ for shape in slide1.shapes:
                 run.text = "Team Leader Name : Priyanshu Doshi"
 
 # ── SLIDE 2: Team Members ──────────────────────────────────────────────────────
-# shape_id 64 = TABLE — leave as is (user fills manually)
-# shape_id 63 = "Team Members" heading — keep
+# shape_id 64 = TABLE (2×2): [0,0]=Leader [0,1]=Member1 [1,0]=Member2 [1,1]=Member3
+slide2 = prs.slides[1]
+for shape in slide2.shapes:
+    if shape.shape_type == 19:  # TABLE
+        tbl = shape.table
+
+        def fill_cell(row, col, title, name, college="—"):
+            cell = tbl.cell(row, col)
+            tf = cell.text_frame
+            tf.word_wrap = True
+            from pptx.oxml.ns import qn
+            from lxml import etree
+            txBody = tf._txBody
+            for p in txBody.findall(qn('a:p')):
+                txBody.remove(p)
+            for line, bold in [(title, True), ("", False), (f"Name: {name}", False), (f"College: {college}", False)]:
+                p_elem = etree.SubElement(txBody, qn('a:p'))
+                r_elem = etree.SubElement(p_elem, qn('a:r'))
+                rPr = etree.SubElement(r_elem, qn('a:rPr'), lang='en-US', dirty='0')
+                rPr.set('sz', '1400' if bold else '1200')
+                if bold:
+                    rPr.set('b', '1')
+                latin = etree.SubElement(rPr, qn('a:latin'))
+                latin.set('typeface', 'Google Sans')
+                t_elem = etree.SubElement(r_elem, qn('a:t'))
+                t_elem.text = line
+
+        fill_cell(0, 0, "Team Leader:",   "Priyanshu Doshi")
+        fill_cell(0, 1, "Team Member 1:", "Shub Patel")
+        fill_cell(1, 0, "Team Member 2:", "Meer Patel")
+        fill_cell(1, 1, "Team Member 3:", "—")
 
 # ── SLIDE 3: Opportunity / USP ────────────────────────────────────────────────
 set_textbox(prs.slides[2], 70, [
