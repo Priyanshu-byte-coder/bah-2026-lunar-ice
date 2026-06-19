@@ -118,25 +118,20 @@ def make_pipeline_flow():
 # 2. Architecture Diagram
 # ─────────────────────────────────────────────────────────────
 def make_architecture():
-    fig, ax = plt.subplots(figsize=(12, 6), facecolor=BG)
+    fig, ax = plt.subplots(figsize=(14, 7), facecolor=BG)
     ax.set_facecolor(BG)
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 6)
+    ax.set_xlim(0, 14)
+    ax.set_ylim(0, 7)
     ax.axis('off')
 
     def draw_box(x, y, w, h, label, color=BOX_BLUE, edge=CYAN,
-                 fontsize=10, sublabel=None, alpha=0.92, lw=1.5):
+                 fontsize=10, alpha=0.92, lw=1.5):
         box = FancyBboxPatch((x, y), w, h,
                              boxstyle="round,pad=0.12",
                              facecolor=color, edgecolor=edge,
                              linewidth=lw, alpha=alpha, zorder=2)
         ax.add_patch(box)
-        if sublabel:
-            ax.text(x + w/2, y + h/2 + 0.15, label, ha='center', va='center',
-                    fontsize=fontsize, fontweight='bold', color=WHITE, zorder=3)
-            ax.text(x + w/2, y + h/2 - 0.2, sublabel, ha='center', va='center',
-                    fontsize=8, color=LIGHT_GRAY, zorder=3, style='italic')
-        else:
+        if label:
             ax.text(x + w/2, y + h/2, label, ha='center', va='center',
                     fontsize=fontsize, fontweight='bold', color=WHITE, zorder=3,
                     linespacing=1.2)
@@ -149,87 +144,104 @@ def make_architecture():
                     zorder=3)
 
     # Title
-    ax.text(6, 5.7, 'LunarIceNet Architecture', ha='center', va='center',
-            fontsize=18, fontweight='bold', color=WHITE)
-    ax.text(6, 5.35, '12.4M Parameters  |  Multi-Scale ResNet + Cross-Attention Fusion',
-            ha='center', va='center', fontsize=10, color=CYAN,
+    ax.text(7, 6.65, 'LunarIceNet Architecture', ha='center', va='center',
+            fontsize=20, fontweight='bold', color=WHITE)
+    ax.text(7, 6.25, '12.4M Parameters  |  Multi-Scale ResNet + Cross-Attention Fusion',
+            ha='center', va='center', fontsize=11, color=CYAN,
             fontfamily='sans-serif')
 
     # ─── Input: DFSAR Patch ───
-    draw_box(0.3, 2.8, 2.0, 1.8, 'DFSAR Patch\n3 × 64 × 64', fontsize=11)
-    # Channel labels
+    draw_box(0.3, 3.2, 2.4, 2.4, '', fontsize=12)
+    ax.text(1.5, 4.9, 'DFSAR Patch', ha='center', va='center',
+            fontsize=12, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(1.5, 4.5, '3 × 64 × 64', ha='center', va='center',
+            fontsize=10, color=LIGHT_GRAY, zorder=3)
+    # Channel labels — positioned below the title text with clear spacing
     channels = ['CPR', 'SERD', 'T-Ratio']
     colors_ch = ['#42a5f5', '#ab47bc', '#66bb6a']
     for j, (ch, cc) in enumerate(zip(channels, colors_ch)):
-        yy = 3.9 - j * 0.35
-        ax.plot([0.55, 0.75], [yy, yy], color=cc, lw=3, zorder=3)
-        ax.text(0.82, yy, ch, fontsize=8, color=cc, va='center', zorder=3)
+        yy = 4.0 - j * 0.35
+        ax.plot([0.6, 0.85], [yy, yy], color=cc, lw=3, zorder=3)
+        ax.text(0.95, yy, ch, fontsize=9, color=cc, va='center', zorder=3)
 
     # ─── Physics Encoder ───
-    draw_box(0.3, 0.5, 2.0, 1.6, 'Physics Encoder\n(MLP)', fontsize=10)
+    draw_box(0.3, 0.5, 2.4, 1.8, '', fontsize=10)
+    ax.text(1.5, 1.85, 'Physics Encoder', ha='center', va='center',
+            fontsize=11, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(1.5, 1.5, '(MLP)', ha='center', va='center',
+            fontsize=9, color=LIGHT_GRAY, zorder=3)
+    # Physics input labels — row below the title
     phys_inputs = ['lat', 'lon', 'PSR', 'pole_dist']
+    total_w = len(phys_inputs) * 0.55
+    x_start = 1.5 - total_w / 2 + 0.275
     for j, pi in enumerate(phys_inputs):
-        yy = 1.65 - j * 0.28
-        ax.text(0.55 + j * 0.48, 0.68, pi, fontsize=7, color='#ffab40',
+        ax.text(x_start + j * 0.55, 0.85, pi, fontsize=7.5, color='#ffab40',
                 ha='center', va='center', zorder=3,
-                bbox=dict(boxstyle='round,pad=0.1', facecolor='#1a1a3a',
+                bbox=dict(boxstyle='round,pad=0.12', facecolor='#1a1a3a',
                           edgecolor='#ffab40', lw=0.8))
 
     # ─── Multi-Scale ResNet Encoder ───
-    draw_box(3.2, 2.8, 2.8, 1.8, 'Multi-Scale ResNet\nEncoder', fontsize=11,
-             sublabel='3 scales × residual blocks')
+    draw_box(3.6, 3.2, 3.0, 2.4, '', fontsize=12)
+    ax.text(5.1, 5.1, 'Multi-Scale ResNet', ha='center', va='center',
+            fontsize=12, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(5.1, 4.7, 'Encoder', ha='center', va='center',
+            fontsize=12, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(5.1, 4.3, '3 scales × residual blocks', ha='center', va='center',
+            fontsize=8.5, color=LIGHT_GRAY, zorder=3, style='italic')
 
-    # Layer blocks inside
+    # Scale blocks inside — positioned below sublabel
     for j in range(3):
-        bx = 3.55 + j * 0.85
-        by = 3.15
-        small = FancyBboxPatch((bx, by), 0.6, 0.35,
-                               boxstyle="round,pad=0.04",
+        bx = 3.95 + j * 0.95
+        by = 3.55
+        small = FancyBboxPatch((bx, by), 0.7, 0.45,
+                               boxstyle="round,pad=0.05",
                                facecolor='#283593', edgecolor='#5c6bc0',
-                               lw=0.8, zorder=3)
+                               lw=1, zorder=3)
         ax.add_patch(small)
-        ax.text(bx + 0.3, by + 0.175, f'S{j+1}', ha='center', va='center',
-                fontsize=7, color='#9fa8da', zorder=4)
+        ax.text(bx + 0.35, by + 0.225, f'S{j+1}', ha='center', va='center',
+                fontsize=9, color='#9fa8da', fontweight='bold', zorder=4)
 
     # ─── Cross-Attention Fusion ───
-    draw_box(6.8, 1.6, 2.4, 2.6, '', color='#1b2838', edge='#4dd0e1',
+    draw_box(7.5, 1.8, 2.8, 3.4, '', color='#1b2838', edge='#4dd0e1',
              fontsize=10, lw=2)
-    ax.text(8.0, 3.8, 'Cross-Attention\nFusion', ha='center', va='center',
-            fontsize=11, fontweight='bold', color=WHITE, zorder=3)
-    ax.text(8.0, 3.2, '2 layers × 4 heads', ha='center', va='center',
+    ax.text(8.9, 4.8, 'Cross-Attention', ha='center', va='center',
+            fontsize=12, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(8.9, 4.4, 'Fusion', ha='center', va='center',
+            fontsize=12, fontweight='bold', color=WHITE, zorder=3)
+    ax.text(8.9, 4.0, '2 layers × 4 heads', ha='center', va='center',
             fontsize=9, color='#4dd0e1', zorder=3, style='italic')
 
-    # Fusion internals
+    # Fusion internals — two attention layer blocks
     for j in range(2):
-        by = 2.0 + j * 0.8
-        small = FancyBboxPatch((7.15, by), 1.7, 0.55,
-                               boxstyle="round,pad=0.05",
+        by = 2.2 + j * 1.0
+        small = FancyBboxPatch((7.85, by), 2.1, 0.65,
+                               boxstyle="round,pad=0.06",
                                facecolor='#0d47a1', edgecolor='#4dd0e1',
-                               lw=0.7, alpha=0.7, zorder=3)
+                               lw=0.8, alpha=0.7, zorder=3)
         ax.add_patch(small)
-        ax.text(8.0, by + 0.275, f'Attention Layer {j+1}', ha='center',
-                va='center', fontsize=8, color='#b2ebf2', zorder=4)
+        ax.text(8.9, by + 0.325, f'Attention Layer {j+1}', ha='center',
+                va='center', fontsize=9, color='#b2ebf2', zorder=4)
 
     # ─── Output Heads ───
     heads = [
-        ("Ice\nProbability", CYAN, 4.2),
-        ("Depth\nEstimate", '#ff9800', 3.2),
-        ("Confidence", '#4caf50', 2.2),
+        ("Ice\nProbability", CYAN, 4.6),
+        ("Depth\nEstimate", '#ff9800', 3.5),
+        ("Confidence", '#4caf50', 2.4),
     ]
     for label, color, yy in heads:
-        draw_box(9.9, yy - 0.4, 1.7, 0.8, label, color='#1a1a3a',
-                 edge=color, fontsize=9, lw=2)
+        draw_box(11.2, yy - 0.4, 2.0, 0.9, label, color='#1a1a3a',
+                 edge=color, fontsize=10, lw=2)
 
     # ─── Arrows ───
     # DFSAR → ResNet
-    arrow(2.3, 3.7, 3.2, 3.7)
-    # Physics → Fusion
-    arrow(2.3, 1.3, 6.8, 2.2)
+    arrow(2.7, 4.4, 3.6, 4.4)
+    # Physics → Fusion (diagonal)
+    arrow(2.7, 1.4, 7.5, 2.5)
     # ResNet → Fusion
-    arrow(6.0, 3.7, 6.8, 3.4)
+    arrow(6.6, 4.4, 7.5, 4.0)
     # Fusion → heads
     for _, color, yy in heads:
-        arrow(9.2, yy, 9.9, yy, color=color)
+        arrow(10.3, yy, 11.2, yy, color=color)
 
     fig.savefig(os.path.join(ASSETS_DIR, 'architecture_diagram.png'), **SAVE_KW)
     plt.close(fig)
