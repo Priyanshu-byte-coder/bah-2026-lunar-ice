@@ -1,0 +1,99 @@
+======================================================================
+LUNAR LANDING SITE ASSESSMENT REPORT
+LunarIceNet — Chandrayaan Mission Planning
+======================================================================
+
+Rank #1: Site_-82.9_126.8
+  Location: -82.87°N, 126.79°E
+  Composite Score: 0.771
+  ├── Ice Probability:  0.954
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.514
+  └── Confidence:       0.485
+
+Rank #2: Site_-82.9_126.7
+  Location: -82.87°N, 126.75°E
+  Composite Score: 0.766
+  ├── Ice Probability:  0.943
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.514
+  └── Confidence:       0.484
+
+Rank #3: Site_-82.9_126.6
+  Location: -82.89°N, 126.63°E
+  Composite Score: 0.765
+  ├── Ice Probability:  0.939
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.513
+  └── Confidence:       0.485
+
+Rank #4: Site_-82.9_126.5
+  Location: -82.89°N, 126.53°E
+  Composite Score: 0.761
+  ├── Ice Probability:  0.926
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.513
+  └── Confidence:       0.486
+
+Rank #5: Site_-83.2_170.0
+  Location: -83.23°N, 169.97°E
+  Composite Score: 0.759
+  ├── Ice Probability:  0.926
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.503
+  └── Confidence:       0.484
+
+Rank #6: Site_-82.9_128.0
+  Location: -82.93°N, 128.00°E
+  Composite Score: 0.755
+  ├── Ice Probability:  0.912
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.512
+  └── Confidence:       0.485
+
+Rank #7: Site_-82.9_126.7
+  Location: -82.91°N, 126.75°E
+  Composite Score: 0.755
+  ├── Ice Probability:  0.910
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.513
+  └── Confidence:       0.485
+
+Rank #8: Site_-83.1_128.2
+  Location: -83.12°N, 128.20°E
+  Composite Score: 0.754
+  ├── Ice Probability:  0.912
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.506
+  └── Confidence:       0.485
+
+Rank #9: Site_-83.2_126.4
+  Location: -83.22°N, 126.36°E
+  Composite Score: 0.753
+  ├── Ice Probability:  0.908
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.503
+  └── Confidence:       0.486
+
+Rank #10: Site_-81.2_-57.4
+  Location: -81.16°N, -57.43°E
+  Composite Score: 0.750
+  ├── Ice Probability:  0.874
+  ├── Terrain Slope:    5.0°
+  ├── Accessibility:    0.800
+  ├── Illumination:     0.565
+  └── Confidence:       0.485
+
+======================================================================
+Total candidates evaluated: 10
+Constraint filters: slope < 15.0°, ice_prob > 0.3, confidence > 0.4
+======================================================================

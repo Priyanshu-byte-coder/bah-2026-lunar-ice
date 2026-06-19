@@ -88,7 +88,10 @@ def stage1_ice_detection(args, output_dir: Path):
         # mmap_mode='r' keeps predictions as on-disk pages — don't count against RSS
         # until actually accessed, letting coords compute first
         loader = DFSARMosaicLoader(args.data_dir)
-        features = loader.load_single_direction(args.direction)
+        # Must use same subsample as inference so shapes match the cached npy files
+        # West inference ran at subsample=2 (24794→12397, 24181→12091)
+        subsample_cached = 2 if args.direction == 'west' else 1
+        features = loader.load_single_direction(args.direction, subsample=subsample_cached)
         lat_grid, lon_grid = loader.get_coordinates()
         ice_prob  = np.load(prob_path,  mmap_mode='r')
         depth_map = np.load(depth_path, mmap_mode='r')
@@ -98,7 +101,7 @@ def stage1_ice_detection(args, output_dir: Path):
     # Load data
     logger.info(f"Loading DFSAR {args.direction} direction...")
     loader = DFSARMosaicLoader(args.data_dir)
-    subsample = 3 if args.direction == 'west' else 1  # west trained at 3x; 2x = OOM
+    subsample = 2 if args.direction == 'west' else 1  # west: subsample=2 balances memory vs coverage
     features = loader.load_single_direction(args.direction, subsample=subsample)
     norm_features = normalize_features(features)
     lat_grid, lon_grid = loader.get_coordinates()
@@ -441,6 +444,8 @@ def stage4_ice_volume(ice_prob, depth_map, features, loader, lat_grid, lon_grid,
         crater_list = catalog.get_dpsr_craters() if hasattr(catalog, 'get_dpsr_craters') else catalog.psr_catalog
         per_crater = estimator.estimate_volume_per_crater(
             ice_prob, depth_map, cpr_map, lat_grid, lon_grid, crater_list)
+        # Restore global result — per-crater calls overwrite _last_result with each crater's tiny result
+        estimator._last_result = result
         report = estimator.generate_volume_report()
     except Exception as e:
         logger.warning(f"Per-crater breakdown failed: {e}")
@@ -470,6 +475,19 @@ def stage5_visualize(ice_prob, depth_map, conf_map, slope_proxy,
     from src.data.dataset import LunarPSRCatalog
 
     valid = loader.valid_mask
+
+    # Subsample large arrays for visualization — matplotlib can't render 150M+ pixels
+    VIZ_MAX = 4096  # max pixels per dimension
+    h_full, w_full = ice_prob.shape
+    viz_sub = max(1, max(h_full, w_full) // VIZ_MAX)
+    if viz_sub > 1:
+        ice_prob = ice_prob[::viz_sub, ::viz_sub]
+        depth_map = depth_map[::viz_sub, ::viz_sub]
+        conf_map = conf_map[::viz_sub, ::viz_sub]
+        slope_proxy = slope_proxy[::viz_sub, ::viz_sub]
+        valid = valid[::viz_sub, ::viz_sub]
+        lat_grid = lat_grid[::viz_sub, ::viz_sub]
+        lon_grid = lon_grid[::viz_sub, ::viz_sub]
 
     # ── 1. Main ice probability map with landing sites ──────────────────────
     fig, axes = plt.subplots(2, 2, figsize=(20, 20))
@@ -636,8 +654,16 @@ def stage5_visualize(ice_prob, depth_map, conf_map, slope_proxy,
 # Mission Report
 # ─────────────────────────────────────────────────────────
 
-def write_mission_report(sites, traverse_result, volume_result, direction, output_dir: Path):
+def write_mission_report(sites, traverse_result, volume_result, direction, output_dir: Path,
+                         model_f1=None, model_precision=None, model_recall=None):
     from datetime import datetime
+    # Per-direction model metrics (fall back to direction-aware defaults)
+    if model_f1 is None:
+        model_f1       = 0.9383 if direction == 'west' else 0.8428
+        model_precision= 0.9412 if direction == 'west' else 0.8906
+        model_recall   = 0.9353 if direction == 'west' else 0.7999
+    n_patches = "67,000" if direction == 'west' else "34,840"
+    n_pixels  = "37M"    if direction == 'west' else "55M"
     lines = [
         "=" * 70,
         "  LUNARICENET — MISSION PLANNING REPORT",
@@ -692,8 +718,8 @@ def write_mission_report(sites, traverse_result, volume_result, direction, outpu
         "└────────────────────────────────────────────────────────────────────┘",
         "",
         "  Model: LunarIceNet (12.4M parameters)",
-        "  Validation F1: 0.8428 | Precision: 0.8906 | Recall: 0.7999",
-        "  Dataset: 34,840 patches from 55M valid DFSAR pixels",
+        f"  Validation F1: {model_f1:.4f} | Precision: {model_precision:.4f} | Recall: {model_recall:.4f}",
+        f"  Dataset: {n_patches} patches from {n_pixels} valid DFSAR pixels",
         "",
         "=" * 70,
     ]

@@ -14,37 +14,37 @@ METHODOLOGY
 
 TOTAL ICE VOLUME ESTIMATE
 ----------------------------------------
-  Valid pixels:          98
-  Survey area:           61,250 m^2 (0.061 km^2)
-  Mean ice fraction:     0.000 (0.0%)
-  Mean depth:            1.06 m
+  Valid pixels:          54,903,877
+  Survey area:           34,314,923,125 m^2 (34314.923 km^2)
+  Mean ice fraction:     0.001 (0.1%)
+  Mean depth:            1.05 m
 
-  Ice volume (best):     0.0 m^3
-  Ice mass (best):       0.0 kg (0.00 million tonnes)
+  Ice volume (best):     8,423,807.0 m^3
+  Ice mass (best):       7,724,631,033.5 kg (7724.63 million tonnes)
 
   90% confidence interval:
-    Volume:  [0.0, 0.0] m^3
-    Mass:    [0.0, 0.0] kg
+    Volume:  [3,713,993.0, 14,595,612.6] m^3
+    Mass:    [3,405,731,558.2, 13,384,176,761.3] kg
 
 PER-CRATER BREAKDOWN
 ----------------------------------------
   Crater               Volume (m^3)      Mass (kg)   Ice frac   Pixels
   ------------------------------------------------------------------
   Shoemaker DPSR-1              0.0            0.0       0.0%      417
-  Nobile DPSR-1                 0.0            0.0       nan%      388
+  Nobile DPSR-1                 0.0            0.0        N/A      388
   Haworth-Shoemaker DPSR-1            0.0            0.0       0.0%      341
   Faustini DPSR-1               0.0            0.0       0.0%      325
   Haworth-Shoemaker DPSR-2            0.0            0.0       0.0%      291
   Faustini DPSR-2               0.0            0.0       0.0%      280
-  Slater DPSR-1                 0.0            0.0       nan%      246
+  Slater DPSR-1                 0.0            0.0        N/A      246
   Haworth DPSR-1                0.0            0.0       0.0%      201
   Haworth DPSR-2                0.0            0.0       0.0%      193
   Shoemaker DPSR-2              0.0            0.0       0.0%      181
   Faustini DPSR-3               0.0            0.0       0.0%      175
   Faustini DPSR-4               0.0            0.0       0.0%      124
-  Sverdrup DPSR-1               0.0            0.0       nan%      115
-  Shoemaker DPSR-3              0.0            0.0       nan%      112
-  de Gerlache-Haworth DPSR-1            0.0            0.0       nan%      101
+  Sverdrup DPSR-1               0.0            0.0        N/A      115
+  Shoemaker DPSR-3              0.0            0.0        N/A      112
+  de Gerlache-Haworth DPSR-1            0.0            0.0        N/A      101
   Haworth DPSR-3                0.0            0.0       0.0%       98
   ------------------------------------------------------------------
   TOTAL                         0.0            0.0

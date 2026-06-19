@@ -1,0 +1,29 @@
+============================================================
+  ROVER TRAVERSE ANALYSIS REPORT
+============================================================
+
+Path status       : SUCCESS
+Waypoints         : 6
+Total distance    : 125 m
+Estimated time    : 1.5 hr
+
+--- Safety Metrics ---
+Max slope         : 5.0 deg
+Mean slope        : 5.0 deg
+Hazardous cells   : 0  (>15.0 deg)
+Near-impassable   : 0  (20-25.0 deg)
+
+--- Energy ---
+Est. consumption  : 216 Wh
+
+--- Cost Breakdown ---
+  distance_m          : 125.0
+  slope_penalty       : 0.0
+  solar_penalty       : 6.900000095367432
+  ice_reward          : 92.9000015258789
+  total_cost          : 39.099998474121094
+
+--- Ice Sampling Waypoints ---
+  Stop 1: (-82.8722, +126.7776)
+
+============================================================

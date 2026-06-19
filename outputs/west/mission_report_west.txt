@@ -1,0 +1,42 @@
+======================================================================
+  LUNARICENET — MISSION PLANNING REPORT
+  Bharatiya Antariksh Hackathon 2026 | Problem Statement 8
+  Chandrayaan-2 DFSAR Subsurface Ice Detection
+======================================================================
+  Generated: 2026-06-19 19:54
+  DFSAR direction: WEST
+
+┌─ STAGE 1: ICE DETECTION ───────────────────────────────────────────┐
+│  Method: LunarIceNet physics-informed CNN + cross-attention fusion  │
+│  Data: Chandrayaan-2 DFSAR Level 3C/L4 mosaics (CPR, SERD, T-Ratio)│
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 2: LANDING SITES ───────────────────────────────────────────┐
+│  #1  lat= -82.874  lon=  126.786  score=0.771        │
+│  #2  lat= -82.867  lon=  126.746  score=0.766        │
+│  #3  lat= -82.888  lon=  126.626  score=0.765        │
+│  #4  lat= -82.887  lon=  126.533  score=0.761        │
+│  #5  lat= -83.232  lon=  169.968  score=0.759        │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 3: ROVER TRAVERSE ──────────────────────────────────────────┐
+│  Waypoints:         6                                          │
+│  Distance:     0.12 km                                        │
+│  Est. time:     1.5 hours                                      │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ STAGE 4: ICE VOLUME ESTIMATION ───────────────────────────────────┐
+│  Volume:       5,621,712 m³                              │
+│  Mass:      5,155,110,177 kg                              │
+│             (5155.11 million tonnes)                              │
+│  Ice area:  53,173,961,875 m²                              │
+│  Mean frac:       0.064 %                               │
+│  Mean depth:       1.00 m                               │
+│  90% CI:    [2,478,571 — 9,740,529] m³         │
+└────────────────────────────────────────────────────────────────────┘
+
+  Model: LunarIceNet (12.4M parameters)
+  Validation F1: 0.9383 | Precision: 0.9412 | Recall: 0.9353
+  Dataset: 67,000 patches from 37M valid DFSAR pixels
+
+======================================================================

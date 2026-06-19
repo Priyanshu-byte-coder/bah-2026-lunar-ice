@@ -3,7 +3,7 @@
   Bharatiya Antariksh Hackathon 2026 | Problem Statement 8
   Chandrayaan-2 DFSAR Subsurface Ice Detection
 ======================================================================
-  Generated: 2026-06-16 23:43
+  Generated: 2026-06-19 19:54
   DFSAR direction: EAST
 
 ┌─ STAGE 1: ICE DETECTION ───────────────────────────────────────────┐
@@ -20,7 +20,9 @@
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ STAGE 3: ROVER TRAVERSE ──────────────────────────────────────────┐
-│  Traverse planning failed or no feasible path in data region        │
+│  Waypoints:        60                                          │
+│  Distance:     1.76 km                                        │
+│  Est. time:    29.9 hours                                      │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ STAGE 4: ICE VOLUME ESTIMATION ───────────────────────────────────┐

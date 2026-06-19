@@ -441,11 +441,18 @@ class IceVolumeEstimator:
                 'mean_ice_fraction', 'n_pixels',
                 'volume_lower_m3', 'volume_upper_m3'
         """
-        # float32 throughout — avoids OOM and 47-min runtime on 12237×12794 grids
+        # float32 throughout — avoids OOM on 150M pixel grids
         lat = np.asarray(lat, dtype=np.float32)
         lon = np.asarray(lon, dtype=np.float32)
         ice_prob = np.asarray(ice_prob, dtype=np.float32)
         cpr_map = np.asarray(cpr_map, dtype=np.float32)
+
+        # Precompute ice fraction + depth once over the full grid (avoid repeat work)
+        ice_fraction_full = self.dielectric.estimate_ice_fraction(cpr_map).astype(np.float32)
+        if depth_map is not None:
+            depth_full = np.asarray(depth_map, dtype=np.float32)
+        else:
+            depth_full = estimate_penetration_depth(self.frequency_ghz, ice_fraction_full).astype(np.float32)
 
         # Moon radius for angular distance
         MOON_RADIUS_KM = 1737.4
@@ -481,18 +488,60 @@ class IceVolumeEstimator:
                     "volume_m3": 0.0,
                     "mass_kg": 0.0,
                     "area_m2": 0.0,
-                    "mean_ice_fraction": 0.0,
+                    "mean_ice_fraction": float('nan'),
                     "n_pixels": 0,
                     "volume_lower_m3": 0.0,
                     "volume_upper_m3": 0.0,
                 })
                 continue
 
-            # Run volume estimation with crater mask
-            crater_result = self.estimate_volume(
-                ice_prob, depth_map, cpr_map, valid_mask=crater_mask
+            # Crop to bounding box for efficiency — avoid full-grid ops per crater
+            rows, cols = np.where(crater_mask)
+            r0, r1 = rows.min(), rows.max() + 1
+            c0, c1 = cols.min(), cols.max() + 1
+            mask_crop = crater_mask[r0:r1, c0:c1]
+            ice_prob_crop = ice_prob[r0:r1, c0:c1]
+            depth_crop = depth_full[r0:r1, c0:c1]
+            frac_crop = ice_fraction_full[r0:r1, c0:c1]
+            cpr_crop = cpr_map[r0:r1, c0:c1]
+
+            n_pixels = int(np.sum(mask_crop))
+            pixel_volume = (self.pixel_area_m2
+                            * np.nan_to_num(depth_crop, nan=0.0)
+                            * np.nan_to_num(frac_crop, nan=0.0)
+                            * np.nan_to_num(ice_prob_crop, nan=0.0)
+                            * mask_crop)
+            total_volume = float(np.nansum(pixel_volume))
+            total_mass = total_volume * DENSITY_ICE
+
+            frac_valid = frac_crop[mask_crop]
+            depth_valid = depth_crop[mask_crop]
+            mean_frac = float(np.nanmean(frac_valid)) if n_pixels > 0 else float('nan')
+            mean_depth = float(np.nanmean(depth_valid)) if n_pixels > 0 else 0.0
+
+            # Fast MC uncertainty on cropped arrays
+            mc_volumes = self._monte_carlo_volume(
+                ice_prob_crop.astype(np.float64),
+                frac_crop.astype(np.float64),
+                depth_crop.astype(np.float64),
+                mask_crop,
             )
-            crater_result["name"] = crater["name"]
+            vol_lo = float(np.percentile(mc_volumes, 5))
+            vol_hi = float(np.percentile(mc_volumes, 95))
+
+            crater_result = {
+                "name": crater["name"],
+                "volume_m3": total_volume,
+                "mass_kg": total_mass,
+                "area_m2": n_pixels * self.pixel_area_m2,
+                "mean_ice_fraction": mean_frac,
+                "mean_depth_m": mean_depth,
+                "n_pixels": n_pixels,
+                "volume_lower_m3": vol_lo,
+                "volume_upper_m3": vol_hi,
+                "mass_lower_kg": vol_lo * DENSITY_ICE,
+                "mass_upper_kg": vol_hi * DENSITY_ICE,
+            }
             results.append(crater_result)
 
         self._crater_results = results
@@ -568,9 +617,9 @@ class IceVolumeEstimator:
             for cr in crater_results:
                 total_vol += cr["volume_m3"]
                 total_mass += cr["mass_kg"]
+                mf = cr.get("mean_ice_fraction", float('nan'))
                 frac_str = (
-                    f"{cr['mean_ice_fraction'] * 100:.1f}%"
-                    if cr["n_pixels"] > 0 else "N/A"
+                    f"{mf * 100:.1f}%" if (cr["n_pixels"] > 0 and not np.isnan(mf)) else "N/A"
                 )
                 lines.append(
                     f"  {cr['name']:<18s} {cr['volume_m3']:>14,.1f} "
